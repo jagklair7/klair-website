@@ -15,10 +15,27 @@ export default function Contact() {
     e.preventDefault()
     if (!form.name || !form.email || !form.message) return
     setSubmitting(true)
-    // TODO: wire up to email service (Resend, Formspree, etc.)
-    await new Promise(r => setTimeout(r, 1200))
-    setSubmitted(true)
-    setSubmitting(false)
+
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      })
+
+      if (res.ok) {
+        setSubmitted(true)
+        setForm({ name: '', email: '', phone: '', company: '', service: '', message: '' })
+      } else {
+        const error = await res.json()
+        alert(error.error || 'Something went wrong. Please try again or email us directly.')
+      }
+    } catch (error) {
+      console.error('Contact form error:', error)
+      alert('Network error. Please try again.')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   const contactInfo = [

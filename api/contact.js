@@ -2,39 +2,21 @@ import { Resend } from 'resend';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-async function handleSubmit(e) {
-  e.preventDefault()
-  if (!form.name || !form.email || !form.message) return
-  setSubmitting(true)
-
-  try {
-    const res = await fetch('/api/contact', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(form),
-    })
-
-    if (res.ok) {
-      setSubmitted(true)
-    } else {
-      alert('Something went wrong. Please try again or email us directly.')
-    }
-  } catch {
-    alert('Network error. Please try again.')
-  } finally {
-    setSubmitting(false)
-  }
-}
 export default async function handler(req, res) {
-  if (req.method !== 'POST') return res.status(405).end();
+  // Only accept POST requests
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
 
   const { name, email, phone, company, service, message } = req.body;
 
+  // Validate required fields
   if (!name || !email || !message) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
 
   try {
+    // Send email via Resend
     await resend.emails.send({
       from: 'Klair Website <noreply@klair.ca>',
       to: 'info@klair.ca',
@@ -53,9 +35,9 @@ export default async function handler(req, res) {
       `,
     });
 
-    return res.status(200).json({ ok: true });
+    return res.status(200).json({ ok: true, message: 'Email sent successfully' });
   } catch (err) {
-    console.error(err);
+    console.error('Email error:', err);
     return res.status(500).json({ error: 'Failed to send email' });
   }
 }
