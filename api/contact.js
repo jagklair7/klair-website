@@ -2,6 +2,29 @@ import { Resend } from 'resend';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+async function handleSubmit(e) {
+  e.preventDefault()
+  if (!form.name || !form.email || !form.message) return
+  setSubmitting(true)
+
+  try {
+    const res = await fetch('/api/contact', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(form),
+    })
+
+    if (res.ok) {
+      setSubmitted(true)
+    } else {
+      alert('Something went wrong. Please try again or email us directly.')
+    }
+  } catch {
+    alert('Network error. Please try again.')
+  } finally {
+    setSubmitting(false)
+  }
+}
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
 
