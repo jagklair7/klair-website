@@ -3,20 +3,30 @@ import { Resend } from 'resend';
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export default async function handler(req, res) {
+  console.log('METHOD:', req.method);
+  console.log('BODY TYPE:', typeof req.body);
+  console.log('BODY:', JSON.stringify(req.body));
+  console.log('API KEY EXISTS:', !!process.env.RESEND_API_KEY);
+
   if (req.method !== 'POST') return res.status(405).end();
-// manually parse body if needed
+
   let body = req.body;
   if (typeof body === 'string') {
     try { body = JSON.parse(body); } catch { return res.status(400).json({ error: 'Invalid JSON' }); }
   }
-  const { name, email, phone, company, service, message } = req.body;
+
+  // fix: destructure from parsed body, not req.body
+  const { name, email, phone, company, service, message } = body;
+
+  console.log('FIELDS:', { name, email, message });
 
   if (!name || !email || !message) {
+    console.log('MISSING FIELDS - returning 400');
     return res.status(400).json({ error: 'Missing required fields' });
   }
 
   try {
-    await resend.emails.send({
+    const result = await resend.emails.send({
       from: 'Klair Website <noreply@digital1now.com>',
       to: 'info@klair.ca',
       replyTo: email,
@@ -33,10 +43,10 @@ export default async function handler(req, res) {
         </table>
       `,
     });
-
+    console.log('Resend result:', JSON.stringify(result));
     return res.status(200).json({ ok: true });
   } catch (err) {
-    console.error('Resend error:', err);
+    console.error('Resend error:', err.message);
     return res.status(500).json({ error: err.message });
   }
 }
