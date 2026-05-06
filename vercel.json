@@ -8,10 +8,10 @@
       "maxDuration": 30
     }
   },
-  "rewrites": [
-    {
-      "source": "/:path*",
-      "destination": "/index.html"
-    }
+  "env": {
+    "RESEND_API_KEY": "@resend_api_key"
+  },
+    "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/$1" }
   ]
 }

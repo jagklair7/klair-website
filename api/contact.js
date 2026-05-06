@@ -1,24 +1,19 @@
-import { Resend } from 'resend';
+const { Resend } = require('resend');
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-export default async function handler(req, res) {
-  // Only accept POST requests
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
+module.exports = async function handler(req, res) {
+  if (req.method !== 'POST') return res.status(405).end();
 
   const { name, email, phone, company, service, message } = req.body;
 
-  // Validate required fields
   if (!name || !email || !message) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
 
   try {
-    // Send email via Resend
     await resend.emails.send({
-      from: 'Klair Website <noreply@klair.ca>',
+      from: 'Klair Website <noreply@digital1now.com>',
       to: 'info@klair.ca',
       replyTo: email,
       subject: `New enquiry from ${name}${company ? ` — ${company}` : ''}`,
@@ -35,9 +30,9 @@ export default async function handler(req, res) {
       `,
     });
 
-    return res.status(200).json({ ok: true, message: 'Email sent successfully' });
+    return res.status(200).json({ ok: true });
   } catch (err) {
-    console.error('Email error:', err);
+    console.error(err);
     return res.status(500).json({ error: 'Failed to send email' });
   }
-}
+};
