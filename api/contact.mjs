@@ -8,6 +8,11 @@ export default async function handler(req, res) {
   console.log('BODY:', JSON.stringify(req.body));
   console.log('API KEY EXISTS:', !!process.env.RESEND_API_KEY);
 
+  if (!process.env.RESEND_API_KEY) {
+    console.error('Missing RESEND_API_KEY environment variable');
+    return res.status(500).json({ error: 'Mail service not configured' });
+  }
+
   if (req.method !== 'POST') return res.status(405).end();
 
   let body = req.body;
@@ -25,9 +30,12 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
 
+  const fromAddress = 'noreply@digital1now.com';
+  console.log('Sending email from', fromAddress, 'to info@digital1now.com');
+
   try {
     const result = await resend.emails.send({
-      from: 'Klair Website <noreply@digital1now.com>',
+      from: fromAddress,
       to: 'info@digital1now.com',
       replyTo: email,
       subject: `New enquiry from ${name}${company ? ` — ${company}` : ''}`,
@@ -46,7 +54,12 @@ export default async function handler(req, res) {
     console.log('Resend result:', JSON.stringify(result));
     return res.status(200).json({ ok: true });
   } catch (err) {
-    console.error('Resend error:', err.message);
-    return res.status(500).json({ error: err.message });
+    console.error('Resend error:', {
+      message: err?.message,
+      name: err?.name,
+      response: err?.response?.data ?? err?.response,
+      stack: err?.stack,
+    });
+    return res.status(500).json({ error: err?.message ?? 'Resend send failed' });
   }
 }
