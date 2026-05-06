@@ -3,9 +3,8 @@
   "outputDirectory": "dist",
   "framework": "vite",
   "functions": {
-    "api/contact.js": {
-      "memory": 1024,
-      "maxDuration": 30
+    "api/contact.mjs": {
+      "runtime": "nodejs20.x"
     }
   },
   "env": {
