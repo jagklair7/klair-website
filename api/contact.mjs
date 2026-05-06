@@ -17,7 +17,7 @@ export default async function handler(req, res) {
 
   try {
     await resend.emails.send({
-      from: 'Klair Website <noreply@klair.ca>',
+      from: 'Klair Website <noreply@digital1now.com>',
       to: 'info@klair.ca',
       replyTo: email,
       subject: `New enquiry from ${name}${company ? ` — ${company}` : ''}`,
