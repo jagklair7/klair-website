@@ -1,8 +1,8 @@
-const { Resend } = require('resend');
+import { Resend } from 'resend';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-module.exports = async function handler(req, res) {
+export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
 
   const { name, email, phone, company, service, message } = req.body;
@@ -13,7 +13,7 @@ module.exports = async function handler(req, res) {
 
   try {
     await resend.emails.send({
-      from: 'Klair Website <noreply@digital1now.com>',
+      from: 'Klair Website <noreply@klair.ca>',
       to: 'info@klair.ca',
       replyTo: email,
       subject: `New enquiry from ${name}${company ? ` — ${company}` : ''}`,
@@ -32,7 +32,7 @@ module.exports = async function handler(req, res) {
 
     return res.status(200).json({ ok: true });
   } catch (err) {
-    console.error(err);
-    return res.status(500).json({ error: 'Failed to send email' });
+    console.error('Resend error:', err);
+    return res.status(500).json({ error: err.message });
   }
-};
+}
