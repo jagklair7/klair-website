@@ -30,13 +30,13 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
 
-  const fromAddress = 'noreply@digital1now.com';
-  console.log('Sending email from', fromAddress, 'to info@digital1now.com');
+  const fromAddress = 'Web Inquiry <noreply@digital1now.com>';
+  console.log('Sending email from', fromAddress, 'to info@klair.ca');
 
   try {
     const result = await resend.emails.send({
       from: fromAddress,
-      to: 'info@digital1now.com',
+      to: 'info@klair.ca',
       replyTo: email,
       subject: `New enquiry from ${name}${company ? ` — ${company}` : ''}`,
       html: `

@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom'
+
 export default function Footer() {
   const currentYear = new Date().getFullYear()
 
@@ -237,9 +239,9 @@ export default function Footer() {
               © {currentYear} <span>Klair Computer Inc.</span> All rights reserved.
             </div>
             <div className="footer__bottom-links">
-              <a href="#" className="footer__bottom-link">Privacy Policy</a>
-              <a href="#" className="footer__bottom-link">Terms of Service</a>
-              <a href="#" className="footer__bottom-link">Cookie Policy</a>
+              <Link to="/privacy" className="footer__bottom-link">Privacy Policy</Link>
+              <Link to="/terms" className="footer__bottom-link">Terms of Service</Link>
+              <Link to="/cookies" className="footer__bottom-link">Cookie Policy</Link>
             </div>
           </div>
         </div>

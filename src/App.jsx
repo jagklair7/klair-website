@@ -9,6 +9,13 @@ import Testimonials from './components/Testimonials'
 import CTABanner   from './components/CTABanner'
 import Contact     from './components/Contact'
 import Footer      from './components/Footer'
+import FloatingContact from './components/FloatingContact'
+import Blog from './pages/Blog'
+import BlogPost from './pages/BlogPost'
+import AdminBlog from './pages/AdminBlog'
+import PrivacyPolicy from './pages/PrivacyPolicy'
+import TermsOfService from './pages/TermsOfService'
+import CookiePolicy from './pages/CookiePolicy'
 import './index.css'
 
 function Home() {
@@ -35,7 +42,14 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/blog" element={<Blog />} />
+        <Route path="/blog/:slug" element={<BlogPost />} />
+        <Route path="/admin/blog" element={<AdminBlog />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
+        <Route path="/terms" element={<TermsOfService />} />
+        <Route path="/cookies" element={<CookiePolicy />} />
       </Routes>
+      <FloatingContact />
     </BrowserRouter>
   )
 }
