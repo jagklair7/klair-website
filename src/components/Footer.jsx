@@ -1,6 +1,4 @@
-import { Link } from 'react-router-dom'
-
-export default function Footer() {
+export default function Footer({ onPolicyClick }) {
   const currentYear = new Date().getFullYear()
 
   const links = {
@@ -141,6 +139,11 @@ export default function Footer() {
           color: rgba(255,255,255,0.3);
           text-decoration: none;
           transition: color 0.15s;
+          background: none;
+          border: none;
+          padding: 0;
+          font: inherit;
+          cursor: pointer;
         }
         .footer__bottom-link:hover { color: rgba(255,255,255,0.6); }
         .footer__badge {
@@ -239,9 +242,9 @@ export default function Footer() {
               © {currentYear} <span>Klair Computer Inc.</span> All rights reserved.
             </div>
             <div className="footer__bottom-links">
-              <Link to="/privacy" className="footer__bottom-link">Privacy Policy</Link>
-              <Link to="/terms" className="footer__bottom-link">Terms of Service</Link>
-              <Link to="/cookies" className="footer__bottom-link">Cookie Policy</Link>
+              <button type="button" className="footer__bottom-link" onClick={() => onPolicyClick('privacy')}>Privacy Policy</button>
+              <button type="button" className="footer__bottom-link" onClick={() => onPolicyClick('terms')}>Terms of Service</button>
+              <button type="button" className="footer__bottom-link" onClick={() => onPolicyClick('cookies')}>Cookie Policy</button>
             </div>
           </div>
         </div>
