@@ -7,20 +7,17 @@ import Placeholder from '@tiptap/extension-placeholder'
 import { supabase } from '../lib/supabase'
 
 const ADMIN_PASSWORD = 'klair2024!'
+const SITE_URL = 'https://beta.klair.ca'
 
 function slugify(text) {
-  return text
-    .toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, '')
-    .replace(/\s+/g, '-')
-    .replace(/-+/g, '-')
-    .trim()
+  return text.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').trim()
 }
 
 const EMPTY_FORM = {
   title: '', slug: '', excerpt: '', content: '', cover_url: '', author: 'Klair Team', published: false
 }
 
+// ── Toolbar Button ────────────────────────────────────────────────────────
 function ToolBtn({ onClick, active, disabled, title, children }) {
   return (
     <button type="button" className={`rte-btn ${active ? 'rte-btn--active' : ''}`}
@@ -30,6 +27,7 @@ function ToolBtn({ onClick, active, disabled, title, children }) {
   )
 }
 
+// ── Rich Text Editor ──────────────────────────────────────────────────────
 function RichEditor({ value, onChange }) {
   const editor = useEditor({
     extensions: [
@@ -39,15 +37,11 @@ function RichEditor({ value, onChange }) {
       Placeholder.configure({ placeholder: 'Start writing your post…' }),
     ],
     content: value || '',
-    onUpdate({ editor }) {
-      onChange(editor.getHTML())
-    },
+    onUpdate({ editor }) { onChange(editor.getHTML()) },
   })
 
   useEffect(() => {
-    if (editor && value !== editor.getHTML()) {
-      editor.commands.setContent(value || '')
-    }
+    if (editor && value !== editor.getHTML()) editor.commands.setContent(value || '')
   }, [value]) // eslint-disable-line
 
   const addImage = useCallback(() => {
@@ -118,17 +112,20 @@ function RichEditor({ value, onChange }) {
   )
 }
 
+// ── Main Component ────────────────────────────────────────────────────────
 export default function AdminBlog() {
   const [authed, setAuthed] = useState(() => sessionStorage.getItem('blog_admin') === 'yes')
   const [pwInput, setPwInput] = useState('')
   const [pwError, setPwError] = useState(false)
   const [posts, setPosts] = useState([])
   const [loading, setLoading] = useState(true)
-  const [view, setView] = useState('list')
+  const [view, setView] = useState('list') // 'list' | 'edit' | 'share'
   const [form, setForm] = useState(EMPTY_FORM)
   const [editId, setEditId] = useState(null)
   const [saving, setSaving] = useState(false)
   const [toast, setToast] = useState(null)
+  const [sharePost, setSharePost] = useState(null)
+  const [copied, setCopied] = useState(null)
 
   function showToast(msg, type = 'success') {
     setToast({ msg, type })
@@ -186,8 +183,18 @@ export default function AdminBlog() {
       ({ error } = await supabase.from('blog_posts').insert(payload))
     }
     setSaving(false)
-    if (error) { showToast('Error: ' + error.message, 'error') }
-    else { showToast(editId ? 'Post updated!' : 'Post created!'); setView('list'); fetchPosts() }
+    if (error) {
+      showToast('Error: ' + error.message, 'error')
+    } else {
+      showToast(editId ? 'Post updated!' : 'Post created!')
+      fetchPosts()
+      if (form.published) {
+        setSharePost({ title: form.title, slug: form.slug, excerpt: form.excerpt })
+        setView('share')
+      } else {
+        setView('list')
+      }
+    }
   }
 
   async function deletePost(id) {
@@ -206,6 +213,31 @@ export default function AdminBlog() {
     return new Date(iso).toLocaleDateString('en-CA', { year: 'numeric', month: 'short', day: 'numeric' })
   }
 
+  function generateCaptions(post) {
+    const url = `${SITE_URL}/blog/${post.slug}`
+    const excerpt = post.excerpt || post.title
+    return {
+      facebook: `📝 New on the Klair Blog!\n\n${post.title}\n\n${excerpt}\n\nRead the full post 👇\n${url}\n\n#KlairComputer #Edmonton #IT #TechTips`,
+      instagram: `📝 New blog post!\n\n${post.title}\n\n${excerpt}\n\n🔗 Link in bio\n\n#KlairComputer #Edmonton #EdmontonBusiness #IT #ManagedIT #TechTips #SmallBusiness`,
+      linkedin: `I just published a new article on the Klair blog:\n\n"${post.title}"\n\n${excerpt}\n\nRead it here: ${url}\n\n#IT #ManagedServices #Edmonton #TechTips #SmallBusiness`,
+      twitter: `New on the Klair blog: "${post.title}"\n\n${excerpt.slice(0, 120)}${excerpt.length > 120 ? '…' : ''}\n\n${url}`,
+    }
+  }
+
+  async function copyCaption(key, text) {
+    await navigator.clipboard.writeText(text)
+    setCopied(key)
+    setTimeout(() => setCopied(null), 2000)
+  }
+
+  const PLATFORMS = [
+    { key: 'facebook',  label: 'Facebook',    color: '#1877F2', url: 'https://www.facebook.com',            icon: '📘' },
+    { key: 'instagram', label: 'Instagram',   color: '#E1306C', url: 'https://www.instagram.com',           icon: '📸' },
+    { key: 'linkedin',  label: 'LinkedIn',    color: '#0A66C2', url: 'https://www.linkedin.com/feed',       icon: '💼' },
+    { key: 'twitter',   label: 'X (Twitter)', color: '#000000', url: 'https://x.com/compose/tweet',         icon: '𝕏'  },
+  ]
+
+  // ── Login ────────────────────────────────────────────────────────────────
   if (!authed) return (
     <>
       <style dangerouslySetInnerHTML={{__html: `
@@ -235,6 +267,7 @@ export default function AdminBlog() {
     </>
   )
 
+  // ── Admin UI ─────────────────────────────────────────────────────────────
   return (
     <>
       <style dangerouslySetInnerHTML={{__html: `
@@ -303,16 +336,37 @@ export default function AdminBlog() {
         .rte-content a{color:var(--burgundy);text-decoration:underline}
         .rte-content hr{border:none;border-top:2px solid var(--border);margin:24px 0}
 
+        .share-intro{background:white;border:1.5px solid var(--border);border-radius:16px;padding:28px 32px;margin-bottom:28px}
+        .share-intro__icon{font-size:36px;margin-bottom:10px}
+        .share-intro__title{font-family:'DM Serif Display',serif;font-size:22px;color:var(--dark);margin-bottom:6px}
+        .share-intro__sub{font-size:14px;color:var(--muted);margin-bottom:12px}
+        .share-intro__link{font-size:13px;font-weight:600;color:var(--burgundy);text-decoration:none;word-break:break-all}
+        .share-intro__link:hover{text-decoration:underline}
+        .share-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+        .share-card{background:white;border:1.5px solid var(--border);border-radius:16px;overflow:hidden;display:flex;flex-direction:column}
+        .share-card__header{display:flex;align-items:center;gap:10px;padding:14px 20px;border-bottom:3px solid;background:var(--off-white)}
+        .share-card__icon{font-size:20px}
+        .share-card__label{font-size:15px;font-weight:700;flex:1}
+        .share-card__open{font-size:11px;font-weight:700;color:white;padding:5px 12px;border-radius:20px;text-decoration:none;white-space:nowrap;transition:opacity 0.15s}
+        .share-card__open:hover{opacity:0.85}
+        .share-card__text{padding:16px 20px;font-size:13px;line-height:1.65;color:var(--dark);white-space:pre-wrap;word-break:break-word;flex:1;margin:0;font-family:'DM Sans',sans-serif;background:white}
+        .share-card__copy{margin:0;padding:12px;border:none;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;color:white;cursor:pointer;transition:background 0.2s;border-top:1px solid var(--border)}
+        .share-card__copy:hover{filter:brightness(1.1)}
+
+        @media(max-width:760px){.share-grid{grid-template-columns:1fr}}
         @media(max-width:640px){
           .admin{padding:32px 16px}
           .admin__form-grid{grid-template-columns:1fr}
           .admin__field--full{grid-column:1}
           .admin__form-card{padding:24px 16px}
+          .share-intro{padding:20px}
         }
       `}} />
 
       <div className="admin">
         <div className="admin__inner">
+
+          {/* ── List view ── */}
           {view === 'list' && (
             <>
               <div className="admin__header">
@@ -327,9 +381,7 @@ export default function AdminBlog() {
                 ) : (
                   <table>
                     <thead>
-                      <tr>
-                        <th>Title</th><th>Status</th><th>Date</th><th>Actions</th>
-                      </tr>
+                      <tr><th>Title</th><th>Status</th><th>Date</th><th>Actions</th></tr>
                     </thead>
                     <tbody>
                       {posts.map(post => (
@@ -350,6 +402,10 @@ export default function AdminBlog() {
                               <button className="admin__btn admin__btn--ghost admin__btn--sm" onClick={() => togglePublish(post)}>
                                 {post.published ? 'Unpublish' : 'Publish'}
                               </button>
+                              <button className="admin__btn admin__btn--ghost admin__btn--sm"
+                                onClick={() => { setSharePost({ title: post.title, slug: post.slug, excerpt: post.excerpt }); setView('share') }}>
+                                Share
+                              </button>
                               <button className="admin__btn admin__btn--danger admin__btn--sm" onClick={() => deletePost(post.id)}>Delete</button>
                             </div>
                           </td>
@@ -362,6 +418,7 @@ export default function AdminBlog() {
             </>
           )}
 
+          {/* ── Edit view ── */}
           {view === 'edit' && (
             <>
               <div className="admin__header">
@@ -416,6 +473,48 @@ export default function AdminBlog() {
               </div>
             </>
           )}
+
+          {/* ── Share view ── */}
+          {view === 'share' && sharePost && (
+            <>
+              <div className="admin__header">
+                <div className="admin__title">Share Post</div>
+                <button className="admin__btn admin__btn--ghost" onClick={() => setView('list')}>← Back to Posts</button>
+              </div>
+              <div className="share-intro">
+                <div className="share-intro__icon">🎉</div>
+                <div className="share-intro__title">"{sharePost.title}" is live!</div>
+                <div className="share-intro__sub">Copy each caption below and paste it into your social channels.</div>
+                <a href={`${SITE_URL}/blog/${sharePost.slug}`} target="_blank" rel="noopener noreferrer" className="share-intro__link">
+                  🔗 {SITE_URL}/blog/{sharePost.slug}
+                </a>
+              </div>
+              <div className="share-grid">
+                {PLATFORMS.map(p => {
+                  const captions = generateCaptions(sharePost)
+                  return (
+                    <div key={p.key} className="share-card">
+                      <div className="share-card__header" style={{ borderBottomColor: p.color }}>
+                        <span className="share-card__icon">{p.icon}</span>
+                        <span className="share-card__label" style={{ color: p.color }}>{p.label}</span>
+                        <a href={p.url} target="_blank" rel="noopener noreferrer"
+                          className="share-card__open" style={{ background: p.color }}>
+                          Open ↗
+                        </a>
+                      </div>
+                      <pre className="share-card__text">{captions[p.key]}</pre>
+                      <button className="share-card__copy"
+                        style={{ background: copied === p.key ? '#065f46' : p.color }}
+                        onClick={() => copyCaption(p.key, captions[p.key])}>
+                        {copied === p.key ? '✓ Copied!' : 'Copy Caption'}
+                      </button>
+                    </div>
+                  )
+                })}
+              </div>
+            </>
+          )}
+
         </div>
       </div>
 

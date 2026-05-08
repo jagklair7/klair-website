@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react'
+import { Link, useLocation } from 'react-router-dom'
 
 export default function Navbar() {
-  const [scrolled,    setScrolled]    = useState(false)
-  const [menuOpen,    setMenuOpen]    = useState(false)
+  const [scrolled, setScrolled] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
+  const location = useLocation()
+  const isHome = location.pathname === '/'
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20)
@@ -10,10 +13,14 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  const links = [
+  // On non-home pages, always show scrolled (white) style
+  const showScrolled = scrolled || !isHome
+
+  const homeLinks = [
     { label: 'Services',  href: '#services'  },
     { label: 'Products',  href: '#products'  },
     { label: 'Why Klair', href: '#why-klair' },
+    { label: 'Blog',      href: '/blog', isRoute: true },
     { label: 'Contact',   href: '#contact'   },
   ]
 
@@ -27,13 +34,6 @@ export default function Navbar() {
           transition: all 0.3s ease;
           padding: 20px 0;
           background: transparent;
-}
-.nav--scrolled {
-  background: rgba(255,255,255,0.97);
-  backdrop-filter: blur(12px);
-  box-shadow: 0 1px 24px rgba(15,23,42,0.08);
-  padding: 12px 0;
-}
         }
         .nav--scrolled {
           background: rgba(255,255,255,0.97);
@@ -53,6 +53,7 @@ export default function Navbar() {
           display: flex;
           align-items: center;
           gap: 10px;
+          text-decoration: none;
         }
         .nav__logo-mark {
           width: 36px;
@@ -97,8 +98,10 @@ export default function Navbar() {
           font-weight: 500;
           color: var(--muted);
           transition: color 0.15s;
+          text-decoration: none;
         }
         .nav__link:hover { color: var(--burgundy); }
+        .nav__link--active { color: var(--burgundy) !important; font-weight: 700; }
         .nav__cta {
           font-size: 13px;
           font-weight: 600;
@@ -108,6 +111,8 @@ export default function Navbar() {
           border-radius: 8px;
           padding: 9px 20px;
           transition: background 0.15s;
+          text-decoration: none;
+          cursor: pointer;
         }
         .nav__cta:hover { background: var(--burgundy-light); }
         .nav__hamburger {
@@ -117,6 +122,7 @@ export default function Navbar() {
           background: none;
           border: none;
           padding: 4px;
+          cursor: pointer;
         }
         .nav__hamburger span {
           display: block;
@@ -140,6 +146,7 @@ export default function Navbar() {
           color: var(--dark);
           padding: 10px 0;
           border-bottom: 1px solid var(--border);
+          text-decoration: none;
         }
         .nav__mobile-cta {
           margin-top: 12px;
@@ -151,60 +158,70 @@ export default function Navbar() {
           border-radius: 8px;
           font-size: 14px;
           font-weight: 600;
+          text-decoration: none;
+          text-align: center;
+          display: block;
         }
         @media (max-width: 768px) {
           .nav__links, .nav__cta { display: none; }
           .nav__hamburger { display: flex; }
           .nav__mobile { display: ${menuOpen ? 'flex' : 'none'}; }
-          .nav--scrolled .nav__mobile { border-top-color: var(--border); }
         }
       `}</style>
 
-      <nav className={`nav ${scrolled ? 'nav--scrolled' : ''}`}>
+      <nav className={`nav ${showScrolled ? 'nav--scrolled' : ''}`}>
         <div className="nav__inner">
-          {/* Logo */}
-          <a href="/" className="nav__logo">
+          <Link to="/" className="nav__logo">
             <div className="nav__logo-mark">K</div>
             <div className="nav__logo-text">
               <span className="nav__logo-name">Klair</span>
               <span className="nav__logo-sub">Computer</span>
             </div>
-          </a>
+          </Link>
 
-          {/* Desktop links */}
           <ul className="nav__links">
-            {links.map(l => (
+            {homeLinks.map(l => (
               <li key={l.label}>
-                <a href={l.href} className="nav__link">{l.label}</a>
+                {l.isRoute ? (
+                  <Link
+                    to={l.href}
+                    className={`nav__link ${location.pathname.startsWith('/blog') ? 'nav__link--active' : ''}`}
+                  >
+                    {l.label}
+                  </Link>
+                ) : (
+                  <a
+                    href={isHome ? l.href : `/${l.href}`}
+                    className="nav__link"
+                  >
+                    {l.label}
+                  </a>
+                )}
               </li>
             ))}
           </ul>
 
-          {/* CTA */}
-          <a href="#contact" className="nav__cta">Get a Quote</a>
+          <a href={isHome ? '#contact' : '/#contact'} className="nav__cta">Get a Quote</a>
 
-          {/* Hamburger */}
-          <button
-            className="nav__hamburger"
-            onClick={() => setMenuOpen(o => !o)}
-            aria-label="Toggle menu"
-          >
-            <span />
-            <span />
-            <span />
+          <button className="nav__hamburger" onClick={() => setMenuOpen(o => !o)} aria-label="Toggle menu">
+            <span /><span /><span />
           </button>
         </div>
 
-        {/* Mobile menu */}
         <div className="nav__mobile">
-          {links.map(l => (
-            <a key={l.label} href={l.href} className="nav__mobile-link"
-              onClick={() => setMenuOpen(false)}>
-              {l.label}
-            </a>
+          {homeLinks.map(l => (
+            l.isRoute ? (
+              <Link key={l.label} to={l.href} className="nav__mobile-link" onClick={() => setMenuOpen(false)}>
+                {l.label}
+              </Link>
+            ) : (
+              <a key={l.label} href={isHome ? l.href : `/${l.href}`} className="nav__mobile-link"
+                onClick={() => setMenuOpen(false)}>
+                {l.label}
+              </a>
+            )
           ))}
-          <a href="#contact" className="nav__mobile-cta"
-            onClick={() => setMenuOpen(false)}>
+          <a href={isHome ? '#contact' : '/#contact'} className="nav__mobile-cta" onClick={() => setMenuOpen(false)}>
             Get a Quote
           </a>
         </div>
