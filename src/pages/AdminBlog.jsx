@@ -5,6 +5,7 @@ import Image from '@tiptap/extension-image'
 import Link from '@tiptap/extension-link'
 import Placeholder from '@tiptap/extension-placeholder'
 import { supabase } from '../lib/supabase'
+import Navbar from '../components/Navbar'
 
 const ADMIN_PASSWORD = 'klair2024!'
 const SITE_URL = 'https://beta.klair.ca'
@@ -241,20 +242,30 @@ export default function AdminBlog() {
   if (!authed) return (
     <>
       <style dangerouslySetInnerHTML={{__html: `
-        .admin-login{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--off-white);padding:24px}
-        .admin-login__card{background:white;border:1.5px solid var(--border);border-radius:20px;padding:48px 40px;width:100%;max-width:380px;text-align:center}
-        .admin-login__title{font-family:'DM Serif Display',serif;font-size:28px;color:var(--dark);margin-bottom:8px}
-        .admin-login__sub{font-size:14px;color:var(--muted);margin-bottom:32px}
-        .admin-login__input{font-family:'DM Sans',sans-serif;width:100%;padding:12px 16px;border:1.5px solid var(--border);border-radius:10px;font-size:15px;outline:none;margin-bottom:16px;transition:border-color 0.15s;background:var(--off-white);box-sizing:border-box}
-        .admin-login__input:focus{border-color:var(--burgundy);background:white}
+        .admin-login{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#0f172a 0%,#1e1040 50%,#3b0a1e 100%);padding:24px}
+        .admin-login__card{background:white;border:1.5px solid var(--border);border-radius:20px;padding:48px 40px;width:100%;max-width:400px;text-align:center;box-shadow:0 24px 80px rgba(0,0,0,0.3)}
+        .admin-login__logo{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:28px}
+        .admin-login__logo-mark{width:40px;height:40px;background:var(--burgundy);border-radius:9px;display:flex;align-items:center;justify-content:center;color:white;font-family:'DM Serif Display',serif;font-size:20px}
+        .admin-login__logo-name{font-family:'DM Serif Display',serif;font-size:18px;color:var(--dark)}
+        .admin-login__divider{height:1px;background:var(--border);margin:0 0 28px}
+        .admin-login__title{font-family:'DM Serif Display',serif;font-size:24px;color:var(--dark);margin-bottom:6px}
+        .admin-login__sub{font-size:13px;color:var(--muted);margin-bottom:28px}
+        .admin-login__input{font-family:'DM Sans',sans-serif;width:100%;padding:12px 16px;border:1.5px solid var(--border);border-radius:10px;font-size:15px;outline:none;margin-bottom:14px;transition:border-color 0.15s;background:var(--off-white);box-sizing:border-box}
+        .admin-login__input:focus{border-color:var(--burgundy);background:white;box-shadow:0 0 0 3px rgba(124,28,46,0.08)}
         .admin-login__input.error{border-color:#e53e3e;animation:shake 0.3s}
         @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
-        .admin-login__btn{width:100%;padding:13px;background:var(--burgundy);color:white;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:700;cursor:pointer}
+        .admin-login__btn{width:100%;padding:13px;background:var(--burgundy);color:white;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:opacity 0.15s}
         .admin-login__btn:hover{opacity:0.9}
+        .admin-login__back{display:inline-flex;align-items:center;gap:6px;margin-top:16px;font-size:13px;color:var(--muted);text-decoration:none;transition:color 0.15s}
+        .admin-login__back:hover{color:var(--burgundy)}
       `}} />
       <div className="admin-login">
         <div className="admin-login__card">
-          <div style={{ fontSize: 40, marginBottom: 12 }}>🔐</div>
+          <div className="admin-login__logo">
+            <div className="admin-login__logo-mark">K</div>
+            <div className="admin-login__logo-name">Klair Computer</div>
+          </div>
+          <div className="admin-login__divider" />
           <div className="admin-login__title">Blog Admin</div>
           <div className="admin-login__sub">Enter your password to continue</div>
           <input className={`admin-login__input ${pwError ? 'error' : ''}`} type="password"
@@ -262,6 +273,7 @@ export default function AdminBlog() {
             onChange={e => setPwInput(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && login()} autoFocus />
           <button className="admin-login__btn" onClick={login}>Enter</button>
+          <div><a href="/" className="admin-login__back">← Back to website</a></div>
         </div>
       </div>
     </>
@@ -271,7 +283,7 @@ export default function AdminBlog() {
   return (
     <>
       <style dangerouslySetInnerHTML={{__html: `
-        .admin{min-height:100vh;background:var(--off-white);padding:48px 24px}
+        .admin{min-height:100vh;background:var(--off-white);padding:88px 24px 48px}
         .admin__inner{max-width:1000px;margin:0 auto}
         .admin__header{display:flex;align-items:center;justify-content:space-between;margin-bottom:36px;flex-wrap:wrap;gap:16px}
         .admin__title{font-family:'DM Serif Display',serif;font-size:32px;color:var(--dark)}
@@ -362,6 +374,8 @@ export default function AdminBlog() {
           .share-intro{padding:20px}
         }
       `}} />
+
+      <Navbar />
 
       <div className="admin">
         <div className="admin__inner">
