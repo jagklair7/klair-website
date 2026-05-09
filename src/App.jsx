@@ -66,7 +66,7 @@ export default function App() {
         <Route path="/terms" element={<TermsOfService />} />
         <Route path="/cookies" element={<CookiePolicy />} />
         <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/dashboard/demo" element={<DashboardDemo />}
+        <Route path="/dashboard/demo" element={<DashboardDemo />} />
       </Routes>
       {ActivePolicy ? (
         <PolicyModal isOpen={true} onClose={handleClosePolicy}>
