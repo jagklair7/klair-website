@@ -16,11 +16,12 @@ export default function Navbar() {
   const showScrolled = scrolled || !isHome
 
   const homeLinks = [
-    { label: 'Services',  href: '#services'  },
-    { label: 'Products',  href: '#products'  },
-    { label: 'Why Klair', href: '#why-klair' },
-    { label: 'Blog',      href: '/blog', isRoute: true },
-    { label: 'Contact',   href: '#contact'   },
+    { label: 'Services',   href: '#services'    },
+    { label: 'Products',   href: '#products'    },
+    { label: 'Why Klair',  href: '#why-klair'   },
+    { label: 'Blog',       href: '/blog',       isRoute: true },
+    { label: 'Monitoring', href: '/login',      isRoute: true },
+    { label: 'Contact',    href: '#contact'     },
   ]
 
   return (
@@ -107,11 +108,9 @@ export default function Navbar() {
           font-weight: 700;
           letter-spacing: 0.18em;
           text-transform: uppercase;
-          /* visible on dark */
           color: rgba(255, 255, 255, 0.55);
           transition: color 0.4s;
         }
-        /* scrolled: dark sub */
         .nav--scrolled .nav__logo-sub {
           color: rgba(15, 23, 42, 0.45);
         }
@@ -132,7 +131,6 @@ export default function Navbar() {
           border-radius: 8px;
           text-decoration: none;
           transition: all 0.2s;
-          /* dark state */
           color: rgba(255, 255, 255, 0.72);
         }
         .nav__link:hover {
@@ -144,7 +142,6 @@ export default function Navbar() {
           background: rgba(255, 255, 255, 0.12) !important;
           font-weight: 600;
         }
-        /* scrolled: dark link colors */
         .nav--scrolled .nav__link {
           color: rgba(15, 23, 42, 0.65);
         }
@@ -156,6 +153,24 @@ export default function Navbar() {
           color: var(--burgundy) !important;
           background: rgba(124, 28, 46, 0.08) !important;
         }
+
+        /* ── Monitoring link gets a subtle live dot ── */
+        .nav__link--monitoring {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
+        .nav__link--monitoring::after {
+          content: '';
+          width: 5px;
+          height: 5px;
+          border-radius: 50%;
+          background: #00e5ff;
+          opacity: 0.8;
+          animation: nav-blink 2s ease-in-out infinite;
+          flex-shrink: 0;
+        }
+        @keyframes nav-blink { 0%,100%{opacity:0.8} 50%{opacity:0.2} }
 
         /* ── CTA button ── */
         .nav__cta {
@@ -194,7 +209,6 @@ export default function Navbar() {
           height: 1.5px;
           border-radius: 2px;
           transition: all 0.2s;
-          /* dark state */
           background: rgba(255, 255, 255, 0.8);
         }
         .nav--scrolled .nav__hamburger span {
@@ -292,7 +306,10 @@ export default function Navbar() {
                 {l.isRoute ? (
                   <Link
                     to={l.href}
-                    className={`nav__link ${location.pathname.startsWith('/blog') ? 'nav__link--active' : ''}`}
+                    className={`nav__link ${
+                      (location.pathname === l.href || (l.href === '/login' && location.pathname.startsWith('/dashboard')))
+                        ? 'nav__link--active' : ''
+                    } ${l.href === '/login' ? 'nav__link--monitoring' : ''}`}
                   >
                     {l.label}
                   </Link>

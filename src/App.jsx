@@ -20,6 +20,8 @@ import TermsOfService from './pages/TermsOfService'
 import CookiePolicy from './pages/CookiePolicy'
 import Dashboard from './pages/Dashboard'
 import DashboardDemo from './pages/DashboardDemo'
+import Login from './pages/Login'
+import ProtectedRoute from './components/ProtectedRoute'
 import './index.css'
 
 function Home({ onPolicyClick }) {
@@ -58,6 +60,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
+        {/* Public */}
         <Route path="/" element={<Home onPolicyClick={handleOpenPolicy} />} />
         <Route path="/blog" element={<Blog />} />
         <Route path="/blog/:slug" element={<BlogPost />} />
@@ -65,9 +68,13 @@ export default function App() {
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/terms" element={<TermsOfService />} />
         <Route path="/cookies" element={<CookiePolicy />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/dashboard/demo" element={<DashboardDemo />} />
+        <Route path="/login" element={<Login />} />
+
+        {/* Protected */}
+        <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+        <Route path="/dashboard/demo" element={<ProtectedRoute><DashboardDemo /></ProtectedRoute>} />
       </Routes>
+
       {ActivePolicy ? (
         <PolicyModal isOpen={true} onClose={handleClosePolicy}>
           <ActivePolicy />
