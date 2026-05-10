@@ -76,7 +76,7 @@ function AVBadge({ status, avName }) {
 
 // ── OS Icon ───────────────────────────────────────────────────
 function OSIcon({ os }) {
-  const icons = { windows: '⊞', macos: '', linux: '🐧', unknown: '?' }
+  const icons = { windows: '⊞', macos: '', linux: '🐧', ios: '📱', network: '🌐', unknown: '?' }
   return <span style={{ fontSize: 18 }}>{icons[os] || icons.unknown}</span>
 }
 
@@ -100,6 +100,16 @@ function DeviceCard({ device }) {
           <div>
             <div className="dev-card__name">{device.hostname || device.ip}</div>
             <div className="dev-card__ip">{device.ip} · {device.vendor || 'Unknown vendor'}</div>
+            {device.os_version && (
+              <div style={{
+                fontSize: 10,
+                color: 'rgba(255,255,255,0.25)',
+                fontFamily: 'Space Mono, monospace',
+                marginTop: 2,
+              }}>
+                {device.os_version}
+              </div>
+            )}
           </div>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
