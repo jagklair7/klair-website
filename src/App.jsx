@@ -22,6 +22,7 @@ import Dashboard from './pages/Dashboard'
 import DashboardDemo from './pages/DashboardDemo'
 import Login from './pages/Login'
 import ProtectedRoute from './components/ProtectedRoute'
+import LiveMonitoring from './pages/LiveMonitoring'
 import './index.css'
 
 function Home({ onPolicyClick }) {
@@ -73,6 +74,7 @@ export default function App() {
         {/* Protected */}
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         <Route path="/dashboard/demo" element={<ProtectedRoute><DashboardDemo /></ProtectedRoute>} />
+        <Route path="/monitoring" element={<ProtectedRoute><LiveMonitoring /></ProtectedRoute>} />
       </Routes>
 
       {ActivePolicy ? (
