@@ -1,0 +1,331 @@
+---
+const currentPath = Astro.url.pathname;
+
+const navLinks = [
+  { label: 'Services',   href: '/services' },
+  { label: 'Products',   href: '/products' },
+  { label: 'Why Klair',  href: '/why-klair' },
+  { label: 'Blog',       href: '/blog' },
+  { label: 'Monitoring', href: '/monitoring' },
+  { label: 'Contact',    href: '/contact' },
+];
+
+const isHome = currentPath === '/';
+---
+
+<style>
+  /* ── Base nav ── */
+  .nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    padding: 0;
+  }
+
+  .nav__glass {
+    margin: 14px 24px;
+    border-radius: 16px;
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    background: rgba(15, 17, 35, 0.45);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    box-shadow:
+      0 4px 24px rgba(0, 0, 0, 0.25),
+      inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  }
+
+  .nav--scrolled .nav__glass {
+    background: rgba(255, 255, 255, 0.88);
+    backdrop-filter: blur(24px) saturate(200%);
+    -webkit-backdrop-filter: blur(24px) saturate(200%);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow:
+      0 4px 32px rgba(15, 23, 42, 0.10),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    margin: 10px 24px;
+  }
+
+  .nav__logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    flex-shrink: 0;
+  }
+  .nav__logo-mark {
+    width: 34px;
+    height: 34px;
+    background: var(--burgundy);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-family: 'DM Serif Display', serif;
+    font-size: 17px;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    box-shadow: 0 2px 8px rgba(124, 28, 46, 0.4);
+    flex-shrink: 0;
+  }
+  .nav__logo-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.15;
+  }
+  .nav__logo-name {
+    font-family: 'DM Serif Display', serif;
+    font-size: 16px;
+    color: var(--burgundy);
+    letter-spacing: -0.01em;
+  }
+  .nav__logo-sub {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.55);
+    transition: color 0.4s;
+  }
+  .nav--scrolled .nav__logo-sub {
+    color: rgba(15, 23, 42, 0.45);
+  }
+
+  .nav__links {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .nav__link {
+    font-size: 13.5px;
+    font-weight: 500;
+    padding: 6px 12px;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: all 0.2s;
+    color: rgba(255, 255, 255, 0.72);
+  }
+  .nav__link:hover {
+    color: white;
+    background: rgba(255, 255, 255, 0.08);
+  }
+  .nav__link--active {
+    color: white !important;
+    background: rgba(255, 255, 255, 0.12) !important;
+    font-weight: 600;
+  }
+  .nav--scrolled .nav__link {
+    color: rgba(15, 23, 42, 0.65);
+  }
+  .nav--scrolled .nav__link:hover {
+    color: var(--burgundy);
+    background: rgba(124, 28, 46, 0.06);
+  }
+  .nav--scrolled .nav__link--active {
+    color: var(--burgundy) !important;
+    background: rgba(124, 28, 46, 0.08) !important;
+  }
+
+  .nav__link--monitoring {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .nav__link--monitoring::after {
+    content: '';
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #00e5ff;
+    opacity: 0.8;
+    animation: nav-blink 2s ease-in-out infinite;
+    flex-shrink: 0;
+  }
+  @keyframes nav-blink { 0%,100%{opacity:0.8} 50%{opacity:0.2} }
+
+  .nav__cta {
+    font-size: 13px;
+    font-weight: 600;
+    color: white;
+    background: var(--burgundy);
+    border: none;
+    border-radius: 8px;
+    padding: 8px 18px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 2px 8px rgba(124, 28, 46, 0.35);
+    white-space: nowrap;
+  }
+  .nav__cta:hover {
+    background: #9b1e35;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(124, 28, 46, 0.45);
+  }
+
+  .nav__hamburger {
+    display: none;
+    flex-direction: column;
+    gap: 5px;
+    background: none;
+    border: none;
+    padding: 4px;
+    cursor: pointer;
+  }
+  .nav__hamburger span {
+    display: block;
+    width: 20px;
+    height: 1.5px;
+    border-radius: 2px;
+    transition: all 0.2s;
+    background: rgba(255, 255, 255, 0.8);
+  }
+  .nav--scrolled .nav__hamburger span {
+    background: var(--dark);
+  }
+
+  .nav__mobile {
+    display: none;
+    flex-direction: column;
+    padding: 8px 24px 16px;
+    gap: 2px;
+  }
+  .nav__mobile-inner {
+    background: rgba(15, 17, 35, 0.97);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    border-radius: 14px;
+    padding: 8px;
+    margin-top: 4px;
+  }
+  .nav--scrolled .nav__mobile-inner {
+    background: rgba(255, 255, 255, 0.97);
+    border-color: rgba(15, 23, 42, 0.08);
+  }
+  .nav__mobile-link {
+    font-size: 14px;
+    font-weight: 500;
+    padding: 11px 16px;
+    border-radius: 8px;
+    text-decoration: none;
+    display: block;
+    transition: background 0.15s;
+    color: rgba(255, 255, 255, 0.8);
+  }
+  .nav__mobile-link:hover {
+    background: rgba(255, 255, 255, 0.06);
+    color: white;
+  }
+  .nav--scrolled .nav__mobile-link {
+    color: var(--dark);
+  }
+  .nav--scrolled .nav__mobile-link:hover {
+    background: rgba(124, 28, 46, 0.06);
+    color: var(--burgundy);
+  }
+  .nav__mobile-divider {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.07);
+    margin: 6px 8px;
+  }
+  .nav--scrolled .nav__mobile-divider {
+    background: rgba(15, 23, 42, 0.08);
+  }
+  .nav__mobile-cta {
+    margin: 8px 8px 4px;
+    padding: 11px 16px;
+    background: var(--burgundy);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    text-align: center;
+    display: block;
+    transition: opacity 0.15s;
+  }
+  .nav__mobile-cta:hover { opacity: 0.9; }
+
+  @media (max-width: 768px) {
+    .nav__links, .nav__cta { display: none; }
+    .nav__hamburger { display: flex; }
+    .nav__mobile { display: flex; }
+    .nav__glass { margin: 10px 16px; padding: 10px 16px; }
+  }
+</style>
+
+<nav class={`nav ${!isHome ? 'nav--scrolled' : ''}`} id="site-nav">
+  <div class="nav__glass">
+    <a href="/" class="nav__logo">
+      <div class="nav__logo-mark">K</div>
+      <div class="nav__logo-text">
+        <span class="nav__logo-name">Klair</span>
+        <span class="nav__logo-sub">Computer</span>
+      </div>
+    </a>
+
+    <ul class="nav__links">
+      {navLinks.map(l => (
+        <li>
+          
+            href={l.href}
+            class={`nav__link ${currentPath === l.href ? 'nav__link--active' : ''} ${l.href === '/monitoring' ? 'nav__link--monitoring' : ''}`}
+          >
+            {l.label}
+          </a>
+        </li>
+      ))}
+    </ul>
+
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <a href="/contact" class="nav__cta">Get a Quote</a>
+      <button class="nav__hamburger" id="nav-hamburger" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+
+  <div class="nav__mobile" id="nav-mobile" style="display: none;">
+    <div class="nav__mobile-inner">
+      {navLinks.map(l => (
+        <a href={l.href} class="nav__mobile-link">{l.label}</a>
+      ))}
+      <div class="nav__mobile-divider"></div>
+      <a href="/contact" class="nav__mobile-cta">Get a Quote</a>
+    </div>
+  </div>
+</nav>
+
+<script>
+  const nav = document.getElementById('site-nav');
+  const isHomePage = window.location.pathname === '/';
+
+  if (isHomePage) {
+    const onScroll = () => {
+      if (window.scrollY > 40) {
+        nav?.classList.add('nav--scrolled');
+      } else {
+        nav?.classList.remove('nav--scrolled');
+      }
+    };
+    window.addEventListener('scroll', onScroll);
+  }
+
+  const hamburger = document.getElementById('nav-hamburger');
+  const mobileMenu = document.getElementById('nav-mobile');
+  hamburger?.addEventListener('click', () => {
+    const isOpen = mobileMenu?.style.display === 'flex';
+    if (mobileMenu) mobileMenu.style.display = isOpen ? 'none' : 'flex';
+  });
+</script>
