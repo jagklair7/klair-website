@@ -11,7 +11,7 @@ security definer
 set search_path = public
 as $$
 declare
-  deploy_hook_url text := 'https://api.vercel.com/v1/integrations/deploy/PASTE_YOUR_HOOK_ID_HERE';
+  deploy_hook_url text := 'https://api.vercel.com/v1/integrations/deploy/prj_VXS0XlKjcU2C7v6yGQSFiboaLzbX/0IAfhN568A';
 begin
   perform net.http_post(
     url := deploy_hook_url,

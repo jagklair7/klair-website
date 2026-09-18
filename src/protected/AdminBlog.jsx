@@ -9,6 +9,7 @@ import '../index.css'
 
 const SITE_URL = 'https://klair.ca'
 const IMAGE_BUCKET = 'blog-images'
+const ALLOWED_ROLES = ['admin', 'blog_editor']
 
 function slugify(text) {
   return text.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').trim()
@@ -213,12 +214,22 @@ export default function AdminBlog() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session)
+      const role = data.session?.user?.app_metadata?.role
+      if (data.session && ALLOWED_ROLES.includes(role)) {
+        setSession(data.session)
+      } else {
+        setSession(null)
+      }
       setCheckingSession(false)
     })
 
     const { data: listener } = supabase.auth.onAuthStateChange((_event, newSession) => {
-      setSession(newSession)
+      const role = newSession?.user?.app_metadata?.role
+      if (newSession && ALLOWED_ROLES.includes(role)) {
+        setSession(newSession)
+      } else {
+        setSession(null)
+      }
     })
 
     return () => listener.subscription.unsubscribe()
@@ -233,11 +244,24 @@ export default function AdminBlog() {
     e.preventDefault()
     setAuthError('')
     setAuthLoading(true)
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
-    setAuthLoading(false)
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+
     if (error) {
       setAuthError(error.message)
+      setAuthLoading(false)
+      return
     }
+
+    const role = data.session?.user?.app_metadata?.role
+    if (!ALLOWED_ROLES.includes(role)) {
+      setAuthError('Your account does not have access to the blog admin.')
+      await supabase.auth.signOut()
+      setAuthLoading(false)
+      return
+    }
+
+    setAuthLoading(false)
+    // onAuthStateChange picks up the valid session automatically
   }
 
   async function logout() {

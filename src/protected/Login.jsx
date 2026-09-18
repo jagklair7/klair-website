@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { supabase } from '../lib/supabase'
 
+const ALLOWED_ROLES = ['admin', 'technician']
+
 export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -12,14 +14,23 @@ export default function Login() {
     setError('')
     setLoading(true)
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
 
     if (error) {
       setError(error.message)
       setLoading(false)
-    } else {
-      window.location.href = '/monitoring-live'
+      return
     }
+
+    const role = data.session?.user?.app_metadata?.role
+    if (!ALLOWED_ROLES.includes(role)) {
+      setError('Your account does not have access to monitoring.')
+      await supabase.auth.signOut()
+      setLoading(false)
+      return
+    }
+
+    window.location.href = '/monitoring-live'
   }
 
   return (
@@ -45,7 +56,6 @@ export default function Login() {
           max-width: 400px;
         }
 
-        /* Wordmark */
         .login-wordmark {
           display: flex;
           align-items: center;
@@ -84,7 +94,6 @@ export default function Login() {
           color: rgba(255,255,255,0.3);
         }
 
-        /* Panel */
         .login-panel {
           background: rgba(255,255,255,0.03);
           border: 1px solid rgba(255,255,255,0.08);
@@ -117,7 +126,6 @@ export default function Login() {
           font-family: 'Space Mono', monospace;
         }
 
-        /* Form */
         .login-field {
           margin-bottom: 16px;
         }
@@ -149,7 +157,6 @@ export default function Login() {
           box-shadow: 0 0 0 3px rgba(0,229,255,0.08);
         }
 
-        /* Error */
         .login-error {
           background: rgba(239,68,68,0.08);
           border: 1px solid rgba(239,68,68,0.2);
@@ -164,7 +171,6 @@ export default function Login() {
           gap: 8px;
         }
 
-        /* Submit */
         .login-btn {
           width: 100%;
           background: linear-gradient(135deg, #00c8e0, #00e5ff);
@@ -201,7 +207,6 @@ export default function Login() {
         }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* Footer */
         .login-footer {
           text-align: center;
           margin-top: 24px;
@@ -215,7 +220,6 @@ export default function Login() {
         }
         .login-footer a:hover { color: #00e5ff; }
 
-        /* Grid decoration */
         .login-grid {
           position: fixed;
           inset: 0;
@@ -233,7 +237,6 @@ export default function Login() {
       <div className="login-wrap">
         <div className="login-card">
 
-          {/* Wordmark */}
           <div className="login-wordmark">
             <div className="login-wordmark__logo">K</div>
             <div className="login-wordmark__text">
@@ -242,7 +245,6 @@ export default function Login() {
             </div>
           </div>
 
-          {/* Panel */}
           <div className="login-panel">
             <div className="login-panel__title">Sign in</div>
             <div className="login-panel__sub">Enter your credentials to access the dashboard</div>
