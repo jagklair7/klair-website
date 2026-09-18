@@ -7,16 +7,23 @@ export interface Props {
   title: string;
   description: string;
   path?: string;
+  image?: string;
+  noindex?: boolean;
 }
 
 const {
   title,
   description,
   path = Astro.url.pathname,
+  image,
+  noindex = false,
 } = Astro.props;
 
 const siteUrl = "https://klair.ca";
 const canonicalUrl = new URL(path, siteUrl).toString();
+const ogImage = image
+  ? new URL(image, siteUrl).toString()
+  : `${siteUrl}/images/klair-logo-share.png`;
 ---
 
 <!DOCTYPE html>
@@ -29,16 +36,18 @@ const canonicalUrl = new URL(path, siteUrl).toString();
     <title>{title} | Klair Computer</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonicalUrl} />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
 
     <meta property="og:type" content="website" />
     <meta property="og:title" content={`${title} | Klair Computer`} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonicalUrl} />
-    <meta property="og:image" content={`${siteUrl}/images/klair-logo-share.png`} />
+    <meta property="og:image" content={ogImage} />
 
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={`${title} | Klair Computer`} />
     <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
   </head>
   <body>
     <Navbar />

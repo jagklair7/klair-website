@@ -1,0 +1,268 @@
+---
+import MarketingLayout from "../layouts/MarketingLayout.astro";
+
+const contactInfo = [
+  { icon: '📍', label: 'Location', value: 'Edmonton, Alberta, Canada' },
+  { icon: '📞', label: 'Phone', value: '(780) 265-0042', href: 'tel:+17802650042' },
+  { icon: '📧', label: 'Email', value: 'info@klair.ca', href: 'mailto:info@klair.ca' },
+  { icon: '🕐', label: 'Hours', value: 'Mon–Fri 8am–5pm MST' },
+];
+---
+
+<MarketingLayout
+  title="Contact Us — Get a Free IT Assessment"
+  description="Get in touch with Klair Computer for managed IT services, network security, cloud solutions, or custom software in Edmonton."
+  path="/contact"
+>
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "ProfessionalService",
+    "name": "Klair Computer",
+    "url": "https://klair.ca",
+    "telephone": "+1-780-265-0042",
+    "email": "info@klair.ca",
+    "areaServed": [
+      { "@type": "City", "name": "Edmonton" },
+      { "@type": "State", "name": "Alberta" },
+      { "@type": "Country", "name": "Canada" },
+    ],
+  })} />
+
+  <style>
+    .contact { padding: 96px 24px; background: var(--off-white); }
+    .contact__inner { max-width: 1200px; margin: 0 auto; }
+    .contact__eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--burgundy); margin-bottom: 16px;
+    }
+    .contact__eyebrow::before {
+      content: ''; display: block; width: 24px; height: 2px; background: var(--burgundy); border-radius: 2px;
+    }
+    .contact__heading {
+      font-family: 'DM Serif Display', serif;
+      font-size: clamp(28px, 4vw, 44px);
+      color: var(--dark);
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+      margin-bottom: 16px;
+      max-width: 480px;
+    }
+    .contact__sub { font-size: 16px; color: var(--muted); line-height: 1.7; max-width: 480px; margin-bottom: 56px; }
+    .contact__layout { display: grid; grid-template-columns: 1fr 1.4fr; gap: 48px; align-items: start; }
+    .contact__info { display: flex; flex-direction: column; gap: 16px; }
+    .contact__info-card {
+      background: white;
+      border: 1.5px solid var(--border);
+      border-radius: 16px;
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      transition: all 0.2s;
+    }
+    .contact__info-card:hover { border-color: var(--burgundy); box-shadow: 0 4px 16px rgba(124,28,46,0.08); }
+    .contact__info-icon {
+      font-size: 22px;
+      width: 44px; height: 44px;
+      background: var(--burgundy-muted);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .contact__info-label {
+      font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 2px;
+    }
+    .contact__info-value { font-size: 14px; font-weight: 600; color: var(--dark); text-decoration: none; transition: color 0.15s; }
+    a.contact__info-value:hover { color: var(--burgundy); }
+    .contact__form-card { background: white; border: 1.5px solid var(--border); border-radius: 20px; padding: 40px; }
+    .contact__form-title { font-size: 18px; font-weight: 700; color: var(--dark); margin-bottom: 24px; letter-spacing: -0.01em; }
+    .contact__form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+    .contact__field { display: flex; flex-direction: column; gap: 6px; }
+    .contact__field--full { grid-column: 1 / -1; }
+    .contact__label { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+    .contact__input, .contact__select, .contact__textarea {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      color: var(--dark);
+      background: var(--off-white);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 11px 14px;
+      outline: none;
+      transition: all 0.15s;
+      width: 100%;
+    }
+    .contact__input:focus, .contact__select:focus, .contact__textarea:focus {
+      border-color: var(--burgundy);
+      box-shadow: 0 0 0 3px rgba(124,28,46,0.08);
+      background: white;
+    }
+    .contact__textarea { resize: vertical; min-height: 120px; }
+    .contact__submit {
+      width: 100%;
+      padding: 14px;
+      background: var(--burgundy);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-top: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .contact__submit:hover:not(:disabled) { background: var(--burgundy-light); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(124,28,46,0.3); }
+    .contact__submit:disabled { opacity: 0.7; cursor: not-allowed; }
+    .contact__success { text-align: center; padding: 48px 24px; }
+    .contact__success-icon { font-size: 48px; margin-bottom: 16px; }
+    .contact__success-title { font-family: 'DM Serif Display', serif; font-size: 24px; color: var(--dark); margin-bottom: 8px; }
+    .contact__success-sub { font-size: 14px; color: var(--muted); line-height: 1.6; }
+    .contact__spinner {
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @media (max-width: 900px) { .contact__layout { grid-template-columns: 1fr; } }
+    @media (max-width: 540px) {
+      .contact { padding: 64px 20px; }
+      .contact__form-card { padding: 24px 20px; }
+      .contact__form-grid { grid-template-columns: 1fr; }
+      .contact__field--full { grid-column: 1; }
+    }
+  </style>
+
+  <section class="contact">
+    <div class="contact__inner">
+      <div class="contact__eyebrow">Get In Touch</div>
+      <h1 class="contact__heading">
+        Let's talk about<br />your IT needs.
+      </h1>
+      <p class="contact__sub">
+        Whether you need managed IT support, a custom software solution,
+        or just want to know where to start — we're here to help.
+      </p>
+
+      <div class="contact__layout">
+        <div class="contact__info">
+          {contactInfo.map(c => (
+            <div class="contact__info-card">
+              <div class="contact__info-icon">{c.icon}</div>
+              <div>
+                <div class="contact__info-label">{c.label}</div>
+                {c.href ? (
+                  <a href={c.href} class="contact__info-value">{c.value}</a>
+                ) : (
+                  <div class="contact__info-value">{c.value}</div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div class="contact__form-card">
+          <div id="contact-form-view">
+            <div class="contact__form-title">Send us a message</div>
+            <form id="contact-form">
+              <div class="contact__form-grid">
+                <div class="contact__field">
+                  <label class="contact__label">Full Name *</label>
+                  <input class="contact__input" name="name" placeholder="John Smith" required />
+                </div>
+                <div class="contact__field">
+                  <label class="contact__label">Email *</label>
+                  <input class="contact__input" name="email" type="email" placeholder="john@company.com" required />
+                </div>
+                <div class="contact__field">
+                  <label class="contact__label">Phone</label>
+                  <input class="contact__input" name="phone" type="tel" placeholder="(780) 555-0000" />
+                </div>
+                <div class="contact__field">
+                  <label class="contact__label">Company</label>
+                  <input class="contact__input" name="company" placeholder="Acme Corp" />
+                </div>
+                <div class="contact__field contact__field--full">
+                  <label class="contact__label">I'm interested in</label>
+                  <select class="contact__select" name="service">
+                    <option value="">Select a service...</option>
+                    <option value="managed-it">Managed IT Services</option>
+                    <option value="network-security">Network & Security</option>
+                    <option value="cloud-backup">Cloud & Backup</option>
+                    <option value="support">Support & Maintenance</option>
+                    <option value="invoice">Klair Invoice</option>
+                    <option value="hotel-tv">Hotel TV Portal</option>
+                    <option value="custom">Custom Software</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+                <div class="contact__field contact__field--full">
+                  <label class="contact__label">Message *</label>
+                  <textarea class="contact__textarea" name="message" placeholder="Tell us about your business and what you're looking for..." required></textarea>
+                </div>
+              </div>
+              <button type="submit" class="contact__submit" id="contact-submit-btn">
+                <span id="contact-submit-label">Send Message</span>
+              </button>
+            </form>
+          </div>
+
+          <div class="contact__success" id="contact-success-view" style="display: none;">
+            <div class="contact__success-icon">✅</div>
+            <div class="contact__success-title">Message Sent!</div>
+            <div class="contact__success-sub">
+              Thanks for reaching out. A member of our team will
+              get back to you within one business day.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    const form = document.getElementById('contact-form') as HTMLFormElement;
+    const submitBtn = document.getElementById('contact-submit-btn') as HTMLButtonElement;
+    const submitLabel = document.getElementById('contact-submit-label')!;
+    const formView = document.getElementById('contact-form-view')!;
+    const successView = document.getElementById('contact-success-view')!;
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      submitBtn.disabled = true;
+      submitLabel.textContent = 'Sending…';
+
+      const data = Object.fromEntries(new FormData(form).entries());
+
+      try {
+        const res = await fetch('/api/contact', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        });
+
+        if (res.ok) {
+          formView.style.display = 'none';
+          successView.style.display = 'block';
+        } else {
+          const error = await res.json();
+          alert(error.error || 'Something went wrong. Please try again or email us directly.');
+          submitBtn.disabled = false;
+          submitLabel.textContent = 'Send Message';
+        }
+      } catch (err) {
+        alert('Network error. Please try again.');
+        submitBtn.disabled = false;
+        submitLabel.textContent = 'Send Message';
+      }
+    });
+  </script>
+</MarketingLayout>

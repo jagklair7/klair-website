@@ -1,0 +1,8 @@
+---
+import NoIndexLayout from "../layouts/NoIndexLayout.astro";
+import AdminBlog from "../protected/AdminBlog.jsx";
+---
+
+<NoIndexLayout title="Blog Admin">
+  <AdminBlog client:only="react" />
+</NoIndexLayout>

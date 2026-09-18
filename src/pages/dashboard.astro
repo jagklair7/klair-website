@@ -1,0 +1,8 @@
+---
+import NoIndexLayout from "../layouts/NoIndexLayout.astro";
+import Dashboard from "../protected/Dashboard.jsx";
+---
+
+<NoIndexLayout title="Dashboard">
+  <Dashboard client:only="react" />
+</NoIndexLayout>

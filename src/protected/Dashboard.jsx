@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
-import Navbar from '../components/Navbar'
-import Footer from '../components/Footer'
+
 
 // ── Sparkline ─────────────────────────────────────────────────────────────
 function Sparkline({ values = [], color = '#00e5ff', height = 36 }) {
@@ -698,8 +697,6 @@ export default function Dashboard() {
         }
       `}} />
 
-      <Navbar />
-
       <div className="km-wrap">
         {/* ── Header ── */}
         <div className="km-header">
@@ -838,8 +835,6 @@ export default function Dashboard() {
 
         </div>
       </div>
-
-      <Footer onPolicyClick={() => {}} />
     </>
   )
 }

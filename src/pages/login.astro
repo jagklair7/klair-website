@@ -1,0 +1,8 @@
+---
+import NoIndexLayout from "../layouts/NoIndexLayout.astro";
+import Login from "../protected/Login.jsx";
+---
+
+<NoIndexLayout title="Sign In">
+  <Login client:only="react" />
+</NoIndexLayout>

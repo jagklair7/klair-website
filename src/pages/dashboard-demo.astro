@@ -1,0 +1,13 @@
+---
+import MarketingLayout from "../layouts/MarketingLayout.astro";
+import DashboardApp from "../components/DashboardApp.jsx";
+---
+
+<MarketingLayout
+  title="Live Dashboard Demo"
+  description="See the Klair Dashboards product in action — real-time network monitoring, device sessions, and infrastructure alerts in one view."
+  path="/dashboard-demo"
+  noindex={true}
+>
+  <DashboardApp client:load />
+</MarketingLayout>

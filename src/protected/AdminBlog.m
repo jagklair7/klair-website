@@ -5,9 +5,7 @@ import Image from '@tiptap/extension-image'
 import Link from '@tiptap/extension-link'
 import Placeholder from '@tiptap/extension-placeholder'
 import { supabase } from '../lib/supabase'
-import Navbar from '../components/Navbar'
 
-const ADMIN_PASSWORD = 'klair2024!'
 const SITE_URL = 'https://beta.klair.ca'
 
 function slugify(text) {
@@ -115,9 +113,15 @@ function RichEditor({ value, onChange }) {
 
 // ── Main Component ────────────────────────────────────────────────────────
 export default function AdminBlog() {
-  const [authed, setAuthed] = useState(() => sessionStorage.getItem('blog_admin') === 'yes')
-  const [pwInput, setPwInput] = useState('')
-  const [pwError, setPwError] = useState(false)
+  const [session, setSession] = useState(null)
+  const [checkingSession, setCheckingSession] = useState(true)
+  const [showLogin, setShowLogin] = useState(false)
+
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [authError, setAuthError] = useState('')
+  const [authLoading, setAuthLoading] = useState(false)
+
   const [posts, setPosts] = useState([])
   const [loading, setLoading] = useState(true)
   const [view, setView] = useState('list') // 'list' | 'edit' | 'share'
@@ -128,29 +132,102 @@ export default function AdminBlog() {
   const [sharePost, setSharePost] = useState(null)
   const [copied, setCopied] = useState(null)
 
+  // ── Real Supabase Auth session check ──────────────────────────────────
+  useEffect(() => {
+    let mounted = true
+
+    async function loadSession() {
+      const { data, error } = await supabase.auth.getSession()
+
+      if (!mounted) return
+
+      if (error) {
+        console.error('Session check failed:', error)
+        setSession(null)
+      } else {
+        setSession(data.session ?? null)
+      }
+
+      setCheckingSession(false)
+    }
+
+    loadSession()
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, newSession) => {
+      if (!mounted) return
+
+      setSession(newSession ?? null)
+
+      // Once authenticated, always show the admin interface.
+      if (newSession) {
+        setShowLogin(false)
+      }
+    })
+
+    return () => {
+      mounted = false
+      subscription.unsubscribe()
+    }
+  }, [])
+
   function showToast(msg, type = 'success') {
     setToast({ msg, type })
     setTimeout(() => setToast(null), 3000)
   }
 
-  function login() {
-    if (pwInput === ADMIN_PASSWORD) {
-      sessionStorage.setItem('blog_admin', 'yes')
-      setAuthed(true)
-    } else {
-      setPwError(true)
-      setTimeout(() => setPwError(false), 1500)
-    }
-  }
+  async function login(e) {
+    e.preventDefault()
 
+    setAuthError('')
+    setAuthLoading(true)
+
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: email.trim(),
+      password,
+    })
+
+    setAuthLoading(false)
+
+    if (error) {
+      console.error('Login error:', error)
+      setAuthError(error.message)
+      return
+    }
+
+    setSession(data.session)
+    setShowLogin(false)
+  }
   async function fetchPosts() {
+    if (!session) {
+      setPosts([])
+      setLoading(false)
+      return
+    }
+
     setLoading(true)
-    const { data } = await supabase.from('blog_posts').select('*').order('created_at', { ascending: false })
-    setPosts(data || [])
+    const { data, error } = await supabase.from('blog_posts').select('*').order('created_at', { ascending: false })
+
+    if (!error) {
+      setPosts(data || [])
+    } else {
+      setPosts([])
+      showToast('Unable to load posts: ' + error.message, 'error')
+    }
+
     setLoading(false)
   }
 
-  useEffect(() => { if (authed) fetchPosts() }, [authed])
+  useEffect(() => {
+    if (session) {
+      fetchPosts()
+      return
+    }
+
+    setPosts([])
+    setLoading(false)
+  }, [session])
 
   function handleChange(e) {
     const { name, value, type, checked } = e.target
@@ -200,14 +277,26 @@ export default function AdminBlog() {
 
   async function deletePost(id) {
     if (!confirm('Delete this post? This cannot be undone.')) return
-    await supabase.from('blog_posts').delete().eq('id', id)
+    const { error } = await supabase.from('blog_posts').delete().eq('id', id)
+    if (error) {
+      showToast('Unable to delete post: ' + error.message, 'error')
+      return
+    }
     showToast('Post deleted.')
-    fetchPosts()
+    await fetchPosts()
   }
 
   async function togglePublish(post) {
-    await supabase.from('blog_posts').update({ published: !post.published }).eq('id', post.id)
-    fetchPosts()
+    const { error } = await supabase
+      .from('blog_posts')
+      .update({ published: !post.published })
+      .eq('id', post.id)
+
+    if (error) {
+      showToast('Unable to update post: ' + error.message, 'error')
+      return
+    }
+    await fetchPosts()
   }
 
   function formatDate(iso) {
@@ -238,47 +327,341 @@ export default function AdminBlog() {
     { key: 'twitter',   label: 'X (Twitter)', color: '#000000', url: 'https://x.com/compose/tweet',         icon: '𝕏'  },
   ]
 
-  // ── Login ────────────────────────────────────────────────────────────────
-  if (!authed) return (
-    <>
-      <style dangerouslySetInnerHTML={{__html: `
-        .admin-login{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#0f172a 0%,#1e1040 50%,#3b0a1e 100%);padding:24px}
-        .admin-login__card{background:white;border:1.5px solid var(--border);border-radius:20px;padding:48px 40px;width:100%;max-width:400px;text-align:center;box-shadow:0 24px 80px rgba(0,0,0,0.3)}
-        .admin-login__logo{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:28px}
-        .admin-login__logo-mark{width:40px;height:40px;background:var(--burgundy);border-radius:9px;display:flex;align-items:center;justify-content:center;color:white;font-family:'DM Serif Display',serif;font-size:20px}
-        .admin-login__logo-name{font-family:'DM Serif Display',serif;font-size:18px;color:var(--dark)}
-        .admin-login__divider{height:1px;background:var(--border);margin:0 0 28px}
-        .admin-login__title{font-family:'DM Serif Display',serif;font-size:24px;color:var(--dark);margin-bottom:6px}
-        .admin-login__sub{font-size:13px;color:var(--muted);margin-bottom:28px}
-        .admin-login__input{font-family:'DM Sans',sans-serif;width:100%;padding:12px 16px;border:1.5px solid var(--border);border-radius:10px;font-size:15px;outline:none;margin-bottom:14px;transition:border-color 0.15s;background:var(--off-white);box-sizing:border-box}
-        .admin-login__input:focus{border-color:var(--burgundy);background:white;box-shadow:0 0 0 3px rgba(124,28,46,0.08)}
-        .admin-login__input.error{border-color:#e53e3e;animation:shake 0.3s}
-        @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
-        .admin-login__btn{width:100%;padding:13px;background:var(--burgundy);color:white;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:opacity 0.15s}
-        .admin-login__btn:hover{opacity:0.9}
-        .admin-login__back{display:inline-flex;align-items:center;gap:6px;margin-top:16px;font-size:13px;color:var(--muted);text-decoration:none;transition:color 0.15s}
-        .admin-login__back:hover{color:var(--burgundy)}
-      `}} />
-      <div className="admin-login">
-        <div className="admin-login__card">
-          <div className="admin-login__logo">
-            <div className="admin-login__logo-mark">K</div>
-            <div className="admin-login__logo-name">Klair Computer</div>
-          </div>
-          <div className="admin-login__divider" />
-          <div className="admin-login__title">Blog Admin</div>
-          <div className="admin-login__sub">Enter your password to continue</div>
-          <input className={`admin-login__input ${pwError ? 'error' : ''}`} type="password"
-            placeholder="Password" value={pwInput}
-            onChange={e => setPwInput(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && login()} autoFocus />
-          <button className="admin-login__btn" onClick={login}>Enter</button>
-          <div><a href="/" className="admin-login__back">← Back to website</a></div>
-        </div>
+  // ── Still checking existing session ───────────────────────────────────
+  if (checkingSession) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: 'var(--muted)'
+      }}>
+        Checking session…
       </div>
-    </>
-  )
+    )
+  }
 
+  // ── Sign In gate ───────────────────────────────────────────────────────
+  if (!session && !showLogin) {
+    return (
+      <>
+        <style dangerouslySetInnerHTML={{ __html: `
+          .admin-gate {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--off-white);
+            padding: 24px;
+          }
+
+          .admin-gate__card {
+            background: white;
+            border: 1.5px solid var(--border);
+            border-radius: 20px;
+            padding: 48px 40px;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,.12);
+          }
+
+          .admin-gate__logo {
+            width: 48px;
+            height: 48px;
+            margin: 0 auto 20px;
+            border-radius: 10px;
+            background: var(--burgundy);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'DM Serif Display', serif;
+            font-size: 24px;
+          }
+
+          .admin-gate__title {
+            font-family: 'DM Serif Display', serif;
+            font-size: 28px;
+            color: var(--dark);
+            margin-bottom: 8px;
+          }
+
+          .admin-gate__text {
+            font-size: 14px;
+            color: var(--muted);
+            margin-bottom: 28px;
+          }
+
+          .admin-gate__btn {
+            width: 100%;
+            padding: 13px 20px;
+            border: none;
+            border-radius: 10px;
+            background: var(--burgundy);
+            color: white;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+          }
+
+          .admin-gate__btn:hover {
+            opacity: .9;
+          }
+        ` }} />
+
+        <div className="admin-gate">
+          <div className="admin-gate__card">
+            <div className="admin-gate__logo">K</div>
+
+            <div className="admin-gate__title">
+              Blog Admin
+            </div>
+
+            <div className="admin-gate__text">
+              Sign in to manage your blog posts.
+            </div>
+
+            <button
+              className="admin-gate__btn"
+              type="button"
+              onClick={() => {
+                setAuthError('')
+                setShowLogin(true)
+              }}
+            >
+              Sign In
+            </button>
+          </div>
+        </div>
+      </>
+    )
+  }
+
+  // ── Login form ─────────────────────────────────────────────────────────
+  if (!session && showLogin) {
+    return (
+      <>
+        <style dangerouslySetInnerHTML={{ __html: `
+          .admin-login {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(
+              135deg,
+              #0f172a 0%,
+              #1e1040 50%,
+              #3b0a1e 100%
+            );
+            padding: 24px;
+          }
+
+          .admin-login__card {
+            background: white;
+            border: 1.5px solid var(--border);
+            border-radius: 20px;
+            padding: 48px 40px;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 24px 80px rgba(0,0,0,0.3);
+          }
+
+          .admin-login__logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 28px;
+          }
+
+          .admin-login__logo-mark {
+            width: 40px;
+            height: 40px;
+            background: var(--burgundy);
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-family: 'DM Serif Display', serif;
+            font-size: 20px;
+          }
+
+          .admin-login__logo-name {
+            font-family: 'DM Serif Display', serif;
+            font-size: 18px;
+            color: var(--dark);
+          }
+
+          .admin-login__divider {
+            height: 1px;
+            background: var(--border);
+            margin: 0 0 28px;
+          }
+
+          .admin-login__title {
+            font-family: 'DM Serif Display', serif;
+            font-size: 24px;
+            color: var(--dark);
+            margin-bottom: 6px;
+          }
+
+          .admin-login__sub {
+            font-size: 13px;
+            color: var(--muted);
+            margin-bottom: 28px;
+          }
+
+          .admin-login__input {
+            font-family: 'DM Sans', sans-serif;
+            width: 100%;
+            padding: 12px 16px;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            font-size: 15px;
+            outline: none;
+            margin-bottom: 14px;
+            transition: border-color 0.15s;
+            background: var(--off-white);
+            box-sizing: border-box;
+          }
+
+          .admin-login__input:focus {
+            border-color: var(--burgundy);
+            background: white;
+            box-shadow: 0 0 0 3px rgba(124,28,46,0.08);
+          }
+
+          .admin-login__error {
+            background: rgba(220,38,38,0.08);
+            border: 1px solid rgba(220,38,38,0.2);
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 12px;
+            color: #b91c1c;
+            margin-bottom: 14px;
+            text-align: left;
+          }
+
+          .admin-login__btn {
+            width: 100%;
+            padding: 13px;
+            background: var(--burgundy);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+          }
+
+          .admin-login__btn:hover:not(:disabled) {
+            opacity: 0.9;
+          }
+
+          .admin-login__btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+          }
+
+          .admin-login__back {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 16px;
+            font-size: 13px;
+            color: var(--muted);
+            text-decoration: none;
+          }
+
+          .admin-login__back:hover {
+            color: var(--burgundy);
+          }
+        ` }} />
+
+        <div className="admin-login">
+          <div className="admin-login__card">
+
+            <div className="admin-login__logo">
+              <div className="admin-login__logo-mark">K</div>
+              <div className="admin-login__logo-name">
+                Klair Computer
+              </div>
+            </div>
+
+            <div className="admin-login__divider" />
+
+            <div className="admin-login__title">
+              Blog Admin
+            </div>
+
+            <div className="admin-login__sub">
+              Sign in with your admin account
+            </div>
+
+            {authError && (
+              <div className="admin-login__error">
+                ⚠ {authError}
+              </div>
+            )}
+
+            <form onSubmit={login}>
+              <input
+                className="admin-login__input"
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                autoComplete="email"
+                required
+                autoFocus
+              />
+
+              <input
+                className="admin-login__input"
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                autoComplete="current-password"
+                required
+              />
+
+              <button
+                className="admin-login__btn"
+                type="submit"
+                disabled={authLoading}
+              >
+                {authLoading ? 'Signing in…' : 'Sign In'}
+              </button>
+            </form>
+
+            <button
+              type="button"
+              className="admin-login__back"
+              onClick={() => {
+                setAuthError('')
+                setShowLogin(false)
+              }}
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer'
+              }}
+            >
+              ← Back
+            </button>
+
+          </div>
+        </div>
+      </>
+    )
+  }
   // ── Admin UI ─────────────────────────────────────────────────────────────
   return (
     <>
@@ -287,6 +670,7 @@ export default function AdminBlog() {
         .admin__inner{max-width:1000px;margin:0 auto}
         .admin__header{display:flex;align-items:center;justify-content:space-between;margin-bottom:36px;flex-wrap:wrap;gap:16px}
         .admin__title{font-family:'DM Serif Display',serif;font-size:32px;color:var(--dark)}
+        .admin__header-actions{display:flex;gap:10px;align-items:center}
         .admin__btn{padding:10px 20px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;cursor:pointer;border:none;transition:all 0.15s}
         .admin__btn--primary{background:var(--burgundy);color:white}
         .admin__btn--primary:hover{opacity:0.9}
@@ -375,8 +759,6 @@ export default function AdminBlog() {
         }
       `}} />
 
-      <Navbar />
-
       <div className="admin">
         <div className="admin__inner">
 
@@ -385,7 +767,10 @@ export default function AdminBlog() {
             <>
               <div className="admin__header">
                 <div className="admin__title">Blog Posts</div>
-                <button className="admin__btn admin__btn--primary" onClick={newPost}>+ New Post</button>
+                <div className="admin__header-actions">
+                  <button className="admin__btn admin__btn--primary" onClick={newPost}>+ New Post</button>
+                  <button className="admin__btn admin__btn--ghost" onClick={logout}>Sign Out</button>
+                </div>
               </div>
               <div className="admin__table">
                 {loading ? (

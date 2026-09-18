@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 
 export default function Login() {
@@ -7,7 +6,6 @@ export default function Login() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const navigate = useNavigate()
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -20,7 +18,7 @@ export default function Login() {
       setError(error.message)
       setLoading(false)
     } else {
-      navigate('/monitoring')
+      window.location.href = '/monitoring-live'
     }
   }
 
@@ -292,7 +290,7 @@ export default function Login() {
           </div>
 
           <div className="login-footer">
-            <Link to="/">← Back to Klair Computer</Link>
+            <a href="/">← Back to Klair Computer</a>
           </div>
 
         </div>

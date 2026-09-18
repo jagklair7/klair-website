@@ -1,0 +1,214 @@
+---
+import MarketingLayout from "../../layouts/MarketingLayout.astro";
+import { supabase } from "../../lib/supabase";
+
+const { data: posts } = await supabase
+  .from("blog_posts")
+  .select("id, title, slug, excerpt, cover_url, author, created_at")
+  .eq("published", true)
+  .order("created_at", { ascending: false });
+
+const allPosts = posts || [];
+const featured = allPosts[0];
+const rest = allPosts.slice(1);
+
+function formatDate(iso: string) {
+  return new Date(iso).toLocaleDateString("en-CA", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+}
+---
+
+<MarketingLayout
+  title="Blog"
+  description="IT tips, cybersecurity insights, and tech news for Edmonton businesses — straight from the Klair team."
+  path="/blog"
+  image={featured?.cover_url}
+>
+  <style>
+    .blog-hero {
+      background: linear-gradient(135deg, #0f172a 0%, #1e1040 50%, #3b0a1e 100%);
+      padding: 140px 24px 80px;
+      position: relative;
+      overflow: hidden;
+    }
+    .blog-hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.02'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    }
+    .blog-hero__inner { max-width: 1200px; margin: 0 auto; position: relative; }
+    .blog-hero__eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 20px; padding: 6px 14px;
+      font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+      color: rgba(255,255,255,0.7); margin-bottom: 20px;
+    }
+    .blog-hero__eyebrow::before {
+      content: ''; width: 6px; height: 6px; background: var(--burgundy); border-radius: 50%;
+    }
+    .blog-hero__heading {
+      font-family: 'DM Serif Display', serif;
+      font-size: clamp(36px, 5vw, 60px);
+      color: white; line-height: 1.1; letter-spacing: -0.02em; margin-bottom: 16px;
+    }
+    .blog-hero__heading span { color: #f87171; }
+    .blog-hero__sub {
+      font-size: 17px; color: rgba(255,255,255,0.55); line-height: 1.7; max-width: 480px;
+    }
+    .blog-body { background: var(--off-white); padding: 72px 24px 96px; }
+    .blog-body__inner { max-width: 1200px; margin: 0 auto; }
+    .blog-featured {
+      display: grid; grid-template-columns: 1.2fr 1fr;
+      background: white; border: 1.5px solid var(--border); border-radius: 24px;
+      overflow: hidden; margin-bottom: 56px; text-decoration: none;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .blog-featured:hover { transform: translateY(-4px); box-shadow: 0 20px 60px rgba(0,0,0,0.1); }
+    .blog-featured__img {
+      min-height: 380px;
+      background: linear-gradient(135deg, #1e1040, #3b0a1e);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 64px; overflow: hidden;
+    }
+    .blog-featured__img img { width: 100%; height: 100%; object-fit: cover; }
+    .blog-featured__body { padding: 48px 40px; display: flex; flex-direction: column; justify-content: center; }
+    .blog-featured__badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(124,28,46,0.08); color: var(--burgundy);
+      font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+      padding: 5px 12px; border-radius: 20px; margin-bottom: 20px; width: fit-content;
+    }
+    .blog-featured__title {
+      font-family: 'DM Serif Display', serif;
+      font-size: clamp(22px, 3vw, 32px);
+      color: var(--dark); line-height: 1.2; letter-spacing: -0.02em; margin-bottom: 16px;
+    }
+    .blog-featured__excerpt { font-size: 15px; color: var(--muted); line-height: 1.7; margin-bottom: 28px; flex: 1; }
+    .blog-featured__meta { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+    .blog-featured__author { font-size: 13px; color: var(--muted); }
+    .blog-featured__author strong { color: var(--dark); }
+    .blog-featured__cta { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: var(--burgundy); }
+    .blog-section-label {
+      font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 24px; display: flex; align-items: center; gap: 12px;
+    }
+    .blog-section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+    .blog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px; }
+    .blog-card {
+      background: white; border: 1.5px solid var(--border); border-radius: 20px;
+      overflow: hidden; text-decoration: none; display: flex; flex-direction: column;
+      transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+    }
+    .blog-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(0,0,0,0.09); border-color: var(--burgundy); }
+    .blog-card__img {
+      width: 100%; height: 190px;
+      background: linear-gradient(135deg, #1e1040, #3b0a1e);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 44px; overflow: hidden; flex-shrink: 0;
+    }
+    .blog-card__img img { width: 100%; height: 100%; object-fit: cover; }
+    .blog-card__body { padding: 24px; flex: 1; display: flex; flex-direction: column; }
+    .blog-card__meta { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; display: flex; gap: 12px; }
+    .blog-card__title { font-family: 'DM Serif Display', serif; font-size: 19px; color: var(--dark); line-height: 1.3; margin-bottom: 10px; letter-spacing: -0.01em; }
+    .blog-card__excerpt { font-size: 14px; color: var(--muted); line-height: 1.6; flex: 1; }
+    .blog-card__cta { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: var(--burgundy); margin-top: 16px; }
+    .blog-empty { text-align: center; padding: 80px 24px; color: var(--muted); }
+    .blog-empty__icon { font-size: 48px; margin-bottom: 16px; }
+    .blog-empty__title { font-family: 'DM Serif Display', serif; font-size: 24px; color: var(--dark); margin-bottom: 8px; }
+    @media(max-width:900px) {
+      .blog-featured { grid-template-columns: 1fr; }
+      .blog-featured__img { min-height: 240px; }
+      .blog-featured__body { padding: 32px 28px; }
+    }
+    @media(max-width:540px) {
+      .blog-hero { padding: 120px 20px 60px; }
+      .blog-body { padding: 48px 20px 64px; }
+      .blog-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+
+  <div class="blog-hero">
+    <div class="blog-hero__inner">
+      <div class="blog-hero__eyebrow">Insights & Tips</div>
+      <h1 class="blog-hero__heading">The Klair<br /><span>Blog.</span></h1>
+      <p class="blog-hero__sub">
+        IT tips, cybersecurity insights, and tech news for Edmonton businesses — straight from our team.
+      </p>
+    </div>
+  </div>
+
+  <div class="blog-body">
+    <div class="blog-body__inner">
+      {allPosts.length === 0 ? (
+        <div class="blog-empty">
+          <div class="blog-empty__icon">✍️</div>
+          <div class="blog-empty__title">No posts yet</div>
+          <div>Check back soon — we're working on it.</div>
+        </div>
+      ) : (
+        <>
+          {featured && (
+            <>
+              <div class="blog-section-label">Featured Post</div>
+              <a href={`/blog/${featured.slug}`} class="blog-featured">
+                <div class="blog-featured__img">
+                  {featured.cover_url ? <img src={featured.cover_url} alt={featured.title} /> : "📝"}
+                </div>
+                <div class="blog-featured__body">
+                  <div class="blog-featured__badge">⭐ Latest Post</div>
+                  <div class="blog-featured__title">{featured.title}</div>
+                  {featured.excerpt && <div class="blog-featured__excerpt">{featured.excerpt}</div>}
+                  <div class="blog-featured__meta">
+                    <div class="blog-featured__author">
+                      By <strong>{featured.author}</strong> · {formatDate(featured.created_at)}
+                    </div>
+                    <span class="blog-featured__cta">
+                      Read post
+                      <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                        <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                      </svg>
+                    </span>
+                  </div>
+                </div>
+              </a>
+            </>
+          )}
+          {rest.length > 0 && (
+            <>
+              <div class="blog-section-label">All Posts</div>
+              <div class="blog-grid">
+                {rest.map((post) => (
+                  <a href={`/blog/${post.slug}`} class="blog-card">
+                    <div class="blog-card__img">
+                      {post.cover_url ? <img src={post.cover_url} alt={post.title} /> : "📝"}
+                    </div>
+                    <div class="blog-card__body">
+                      <div class="blog-card__meta">
+                        <span>{formatDate(post.created_at)}</span>
+                        <span>{post.author}</span>
+                      </div>
+                      <div class="blog-card__title">{post.title}</div>
+                      {post.excerpt && <div class="blog-card__excerpt">{post.excerpt}</div>}
+                      <span class="blog-card__cta">
+                        Read more
+                        <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                          <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                      </span>
+                    </div>
+                  </a>
+                ))}
+              </div>
+            </>
+          )}
+        </>
+      )}
+    </div>
+  </div>
+</MarketingLayout>

@@ -1,8 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
-import { useNavigate } from 'react-router-dom'
+/*import { useNavigate } from 'react-router-dom'*/
 import { supabase } from '../lib/supabase'
-import Navbar from '../components/Navbar'
-import Footer from '../components/Footer'
+
 
 // ── Helpers ───────────────────────────────────────────────────
 function timeAgo(iso) {
@@ -240,7 +239,7 @@ export default function LiveMonitoring() {
   const [lastScan, setLastScan] = useState(null)
   const [filter, setFilter]     = useState('all')
   const [search, setSearch]     = useState('')
-  const navigate = useNavigate()
+  /*const navigate = useNavigate() */
 
   // Load devices from device_latest view
   const fetchDevices = useCallback(async () => {
@@ -624,8 +623,6 @@ export default function LiveMonitoring() {
         }
       `}</style>
 
-      <Navbar />
-
       <div className="lm-wrap">
         <div className="lm-header">
           <div className="lm-header__inner">
@@ -693,7 +690,6 @@ export default function LiveMonitoring() {
         </div>
       </div>
 
-      <Footer onPolicyClick={() => {}} />
     </>
   )
 }

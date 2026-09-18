@@ -6,7 +6,7 @@ const navLinks = [
   { label: 'Products',   href: '/products' },
   { label: 'Why Klair',  href: '/why-klair' },
   { label: 'Blog',       href: '/blog' },
-  { label: 'Monitoring', href: '/monitoring' },
+  { label: 'Monitoring', href: '/login' },
   { label: 'Contact',    href: '/contact' },
 ];
 
@@ -278,9 +278,9 @@ const isHome = currentPath === '/';
     <ul class="nav__links">
       {navLinks.map(l => (
         <li>
-          
+          <a
             href={l.href}
-            class={`nav__link ${currentPath === l.href ? 'nav__link--active' : ''} ${l.href === '/monitoring' ? 'nav__link--monitoring' : ''}`}
+            class={`nav__link ${currentPath === l.href ? 'nav__link--active' : ''} ${l.href === '/login' ? 'nav__link--monitoring' : ''}`}
           >
             {l.label}
           </a>

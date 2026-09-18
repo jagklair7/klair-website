@@ -1,0 +1,8 @@
+---
+import NoIndexLayout from "../layouts/NoIndexLayout.astro";
+import LiveMonitoring from "../protected/LiveMonitoring.jsx";
+---
+
+<NoIndexLayout title="Live Monitoring">
+  <LiveMonitoring client:only="react" />
+</NoIndexLayout>

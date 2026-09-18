@@ -1,0 +1,61 @@
+---
+import MarketingLayout from "../layouts/MarketingLayout.astro";
+import Hero from "../components/Hero.astro";
+import TrustStrip from "../components/TrustStrip.astro";
+import Testimonials from "../components/Testimonials.astro";
+import CTABanner from "../components/CTABanner.astro";
+---
+
+<MarketingLayout
+  title="Edmonton MSP & In-House Software Developer"
+  description="Klair Computer delivers managed IT support, cybersecurity, and cloud solutions for Edmonton businesses — plus in-house software like Klair Invoice and Hotel TV Portal."
+  path="/"
+>
+  <style>
+    .home-teasers { padding: 96px 24px; background: var(--white); }
+    .home-teasers__inner { max-width: 1200px; margin: 0 auto; }
+    .home-teasers__grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .home-teaser {
+      border: 1.5px solid var(--border);
+      border-radius: 16px;
+      padding: 32px;
+      transition: all 0.2s;
+    }
+    .home-teaser:hover { border-color: var(--burgundy); box-shadow: 0 8px 32px rgba(124,28,46,0.08); }
+    .home-teaser__title { font-size: 18px; font-weight: 700; color: var(--dark); margin-bottom: 10px; }
+    .home-teaser__desc { font-size: 14px; color: var(--muted); line-height: 1.7; margin-bottom: 16px; }
+    .home-teaser__link { font-size: 13px; font-weight: 600; color: var(--burgundy); text-decoration: none; }
+    .home-teaser__link:hover { text-decoration: underline; }
+    @media (max-width: 900px) {
+      .home-teasers__grid { grid-template-columns: 1fr; }
+    }
+  </style>
+
+  <Hero />
+  <TrustStrip />
+
+  <section class="home-teasers">
+    <div class="home-teasers__inner">
+      <div class="home-teasers__grid">
+        <div class="home-teaser">
+          <div class="home-teaser__title">Managed IT Services</div>
+          <p class="home-teaser__desc">24/7 monitoring, network security, cloud & backup, and on-site support — everything your business needs to stay running.</p>
+          <a href="/services" class="home-teaser__link">See our services →</a>
+        </div>
+        <div class="home-teaser">
+          <div class="home-teaser__title">In-House Software</div>
+          <p class="home-teaser__desc">Klair Invoice, Hotel TV Portal, and custom dashboards — software we built ourselves to solve real business problems.</p>
+          <a href="/products" class="home-teaser__link">Explore our products →</a>
+        </div>
+        <div class="home-teaser">
+          <div class="home-teaser__title">Why Klair</div>
+          <p class="home-teaser__desc">We're the Edmonton MSP that thinks like a software company — one team for IT support, security, and custom development.</p>
+          <a href="/why-klair" class="home-teaser__link">Why choose us →</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <Testimonials />
+  <CTABanner />
+</MarketingLayout>
