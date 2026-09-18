@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
-/*import { useNavigate } from 'react-router-dom'*/
 import { supabase } from '../lib/supabase'
 
+const ALLOWED_ROLES = ['admin', 'technician']
 
 // ── Helpers ───────────────────────────────────────────────────
 function timeAgo(iso) {
@@ -234,12 +234,33 @@ function FilterBar({ filter, setFilter, search, setSearch, total }) {
 
 // ── Main Page ─────────────────────────────────────────────────
 export default function LiveMonitoring() {
+  const [authChecked, setAuthChecked] = useState(false)
+  const [authorized, setAuthorized]   = useState(false)
+
   const [devices, setDevices]   = useState([])
   const [loading, setLoading]   = useState(true)
   const [lastScan, setLastScan] = useState(null)
   const [filter, setFilter]     = useState('all')
   const [search, setSearch]     = useState('')
-  /*const navigate = useNavigate() */
+
+  // ── Auth gate — must run before any data fetching ─────────────
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      const role = data.session?.user?.app_metadata?.role
+      if (data.session && ALLOWED_ROLES.includes(role)) {
+        setAuthorized(true)
+      } else {
+        window.location.href = '/login'
+      }
+      setAuthChecked(true)
+    })
+  }, [])
+
+  // Sign out on page unload
+    async function handleSignOut() {
+    await supabase.auth.signOut()
+    window.location.href = '/login'
+  }
 
   // Load devices from device_latest view
   const fetchDevices = useCallback(async () => {
@@ -268,6 +289,8 @@ export default function LiveMonitoring() {
   }, [])
 
   useEffect(() => {
+    if (!authorized) return
+
     fetchDevices()
     fetchLastScan()
 
@@ -294,7 +317,7 @@ export default function LiveMonitoring() {
       supabase.removeChannel(channel)
       clearInterval(poll)
     }
-  }, [fetchDevices, fetchLastScan])
+  }, [authorized, fetchDevices, fetchLastScan])
 
   // Filter + search
   const filtered = devices.filter(d => {
@@ -315,6 +338,8 @@ export default function LiveMonitoring() {
 
     return matchSearch && matchFilter
   })
+
+  if (!authChecked || !authorized) return null
 
   return (
     <>
@@ -632,6 +657,21 @@ export default function LiveMonitoring() {
                 Site: HQ · Edmonton, AB · Real-time via Klair Agent
               </div>
             </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+              <div className="lm-scan-badge">
+                {lastScan ? (
+                  <>
+                    <div><strong>Last scan:</strong> {timeAgo(lastScan.scanned_at)}</div>
+                    <div><strong>{lastScan.total_found}</strong> devices found · {lastScan.duration_ms}ms</div>
+                  </>
+                ) : (
+                  <div>Waiting for first scan…</div>
+                )}
+              </div>
+              <button className="lm-signout-btn" onClick={handleSignOut}>Sign Out</button>
+            </div>
+
             <div className="lm-scan-badge">
               {lastScan ? (
                 <>

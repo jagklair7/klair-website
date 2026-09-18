@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 
+const ALLOWED_ROLES = ['admin', 'technician']
 
 // ── Sparkline ─────────────────────────────────────────────────────────────
 function Sparkline({ values = [], color = '#00e5ff', height = 36 }) {
@@ -246,21 +246,46 @@ const KPI_DATA = [
 
 // ── Main Dashboard ────────────────────────────────────────────────────────
 export default function Dashboard() {
+  const [authChecked, setAuthChecked] = useState(false)
+  const [authorized, setAuthorized]   = useState(false)
+
   const [tick, setTick] = useState(0)
   const [networkIn, setNetworkIn] = useState(58)
   const [networkOut, setNetworkOut] = useState(34)
 
+  // ── Auth gate ───────────────────────────────────────────────
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      const role = data.session?.user?.app_metadata?.role
+      if (data.session && ALLOWED_ROLES.includes(role)) {
+        setAuthorized(true)
+      } else {
+        window.location.href = '/login'
+      }
+      setAuthChecked(true)
+    })
+  }, [])
+
+  // Sign out on page unload
+    async function handleSignOut() {
+    await supabase.auth.signOut()
+    window.location.href = '/login'
+  }
+
   // Simulate live ticking metrics
   useEffect(() => {
+    if (!authorized) return
     const id = setInterval(() => {
       setTick(t => t + 1)
       setNetworkIn(v => Math.max(10, Math.min(160, v + (Math.random() - 0.48) * 12)))
       setNetworkOut(v => Math.max(5, Math.min(80, v + (Math.random() - 0.5) * 8)))
     }, 2500)
     return () => clearInterval(id)
-  }, [])
+  }, [authorized])
 
   const now = new Date()
+
+  if (!authChecked || !authorized) return null
 
   return (
     <>
@@ -391,6 +416,25 @@ export default function Dashboard() {
           font-size: 10px;
           color: var(--muted);
           text-align: right;
+        }
+          
+        .km-signout-btn {
+          font-family: 'Syne', sans-serif;
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 0.05em;
+          color: rgba(255,255,255,0.5);
+          background: rgba(255,255,255,0.04);
+          border: 1px solid rgba(255,255,255,0.1);
+          border-radius: 8px;
+          padding: 8px 16px;
+          cursor: pointer;
+          transition: all 0.15s;
+        }
+        .km-signout-btn:hover {
+          color: white;
+          border-color: rgba(0,229,255,0.3);
+          background: rgba(0,229,255,0.06);
         }
 
         /* ── Body ── */
@@ -719,6 +763,7 @@ export default function Dashboard() {
                 <div className="km-live-dot" />
                 Live · Refreshes every 30s
               </div>
+              <button className="km-signout-btn" onClick={handleSignOut}>Sign Out</button>
             </div>
           </div>
         </div>
