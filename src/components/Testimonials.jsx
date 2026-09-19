@@ -231,36 +231,16 @@ export default function Testimonials() {
           margin-top: 32px;
           justify-content: center;
         }
-
         .testimonials__dot {
-            width: 44px;
-            height: 44px;
-            padding: 0;
-            border: none;
-            background: transparent;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-          }
-
-          .testimonials__dot::before {
-            content: '';
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: var(--border);
-            transition: all 0.2s;
-          }
-
-          .testimonials__dot:hover::before {
-            background: var(--muted);
-          }
-
-          .testimonials__dot--active::before {
-            background: var(--burgundy);
-          }
-
+          width: 44px; height: 44px;
+          border-radius: 50%;
+          background: var(--border);
+          border: none;
+          cursor: pointer;
+          transition: all 0.2s;
+          padding: 0px;
+          background-clip: content-box;
+        }
         .testimonials__dot--active {
           background: var(--burgundy);
           width: 24px;
