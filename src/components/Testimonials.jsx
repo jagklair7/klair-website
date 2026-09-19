@@ -232,7 +232,7 @@ export default function Testimonials() {
           justify-content: center;
         }
         .testimonials__dot {
-          width: 44px; height: 44px;
+          width: 8px; height: 8px;
           border-radius: 50%;
           background: var(--border);
           border: none;
