@@ -239,6 +239,7 @@ export default function Testimonials() {
           cursor: pointer;
           transition: all 0.2s;
           padding: 0;
+          background-clip: content-box;
         }
         .testimonials__dot--active {
           background: var(--burgundy);
@@ -317,15 +318,16 @@ export default function Testimonials() {
           </div>
 
           {/* Dots */}
-          <div className="testimonials__dots">
-            {testimonials.map((_, i) => (
+         <div className="testimonials__dots">
+            {testimonials.map((t, i) => (
               <button
                 key={i}
                 className={`testimonials__dot ${i === active ? 'testimonials__dot--active' : ''}`}
                 onClick={() => setActive(i)}
+                aria-label={`View testimonial from ${t.name}, ${t.company}`}
               />
             ))}
-          </div>
+         </div>
         </div>
       </section>
     </>
