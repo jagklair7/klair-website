@@ -24,6 +24,28 @@ const canonicalUrl = new URL(path, siteUrl).toString();
 const ogImage = image
   ? new URL(image, siteUrl).toString()
   : `${siteUrl}/images/klair-logo-share.png`;
+
+const localBusinessSchema = {
+  "@context": "https://schema.org",
+  "@type": "ProfessionalService",
+  "name": "Klair Computer",
+  "url": siteUrl,
+  "image": `${siteUrl}/images/klair-logo-share.png`,
+  "telephone": "+1-780-265-0042",
+  "areaServed": {
+    "@type": "Place",
+    "name": "Central Alberta"
+  },
+  "description": "Managed IT support, cybersecurity, and cloud solutions for businesses across Central Alberta, with weekend on-call support available.",
+  "openingHoursSpecification": [
+    {
+      "@type": "OpeningHoursSpecification",
+      "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+      "opens": "08:00",
+      "closes": "17:00"
+    }
+  ]
+};
 ---
 
 <!DOCTYPE html>
@@ -48,6 +70,8 @@ const ogImage = image
     <meta name="twitter:title" content={`${title} | Klair Computer`} />
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={ogImage} />
+
+    <script type="application/ld+json" set:html={JSON.stringify(localBusinessSchema)} />
   </head>
   <body>
     <Navbar />

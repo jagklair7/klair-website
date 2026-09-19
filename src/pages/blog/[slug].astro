@@ -17,6 +17,8 @@ export async function getStaticPaths() {
 
 const { post } = Astro.props;
 
+const siteUrl = "https://klair.ca";
+
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("en-CA", {
     year: "numeric",
@@ -43,6 +45,32 @@ const safeContent = sanitizeHtml(post.content || "", {
   },
   allowedSchemes: ["http", "https", "mailto"],
 });
+
+const articleSchema = {
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": post.title,
+  "description": description,
+  "image": post.cover_url || `${siteUrl}/images/klair-logo-share.png`,
+  "author": {
+    "@type": post.author === "Klair Team" ? "Organization" : "Person",
+    "name": post.author
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Klair Computer",
+    "logo": {
+      "@type": "ImageObject",
+      "url": `${siteUrl}/images/klair-logo-share.png`
+    }
+  },
+  "datePublished": post.created_at,
+  "dateModified": post.updated_at || post.created_at,
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": `${siteUrl}/blog/${post.slug}`
+  }
+};
 ---
 
 <MarketingLayout
@@ -166,4 +194,5 @@ const safeContent = sanitizeHtml(post.content || "", {
       </div>
     </div>
   </div>
+ <script type="application/ld+json" set:html={JSON.stringify(articleSchema)} />
 </MarketingLayout>
