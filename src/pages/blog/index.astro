@@ -162,7 +162,7 @@ function formatDate(iso: string) {
                 </div>
                 <div class="blog-featured__body">
                   <div class="blog-featured__badge">⭐ Latest Post</div>
-                  <div class="blog-featured__title">{featured.title}</div>
+                  <h2 class="blog-featured__title">{featured.title}</h2>
                   {featured.excerpt && <div class="blog-featured__excerpt">{featured.excerpt}</div>}
                   <div class="blog-featured__meta">
                     <div class="blog-featured__author">
@@ -193,7 +193,7 @@ function formatDate(iso: string) {
                         <span>{formatDate(post.created_at)}</span>
                         <span>{post.author}</span>
                       </div>
-                      <div class="blog-card__title">{post.title}</div>
+                      <h2 class="blog-card__title">{post.title}</h2>
                       {post.excerpt && <div class="blog-card__excerpt">{post.excerpt}</div>}
                       <span class="blog-card__cta">
                         Read more
