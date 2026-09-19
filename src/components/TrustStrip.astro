@@ -61,17 +61,28 @@ const partners = [
   }
   .trust__partner.is-hidden { opacity: 0; transform: translateY(6px); display: none; }
   .trust__partner-name { font-size: 15px; font-weight: 600; color: var(--dark); letter-spacing: -0.01em; white-space: nowrap; }
-  .trust__dots { display: flex; gap: 6px; }
+  .trust__dots { display: flex; align-items: center; gap: 2px; }
   .trust__dot {
-    width: 6px; height: 6px;
-    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
     border: none;
     cursor: pointer;
     padding: 0;
-    transition: all 0.2s;
-    background: var(--border);
   }
-  .trust__dot--active { background: var(--burgundy); width: 18px; border-radius: 3px; }
+  .trust__dot::before {
+    content: '';
+    display: block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--border);
+    transition: all 0.2s;
+  }
+  .trust__dot--active::before { background: var(--burgundy); width: 18px; border-radius: 3px; }
   @media (max-width: 768px) {
     .trust__label-line { max-width: 60px; }
   }
@@ -94,8 +105,12 @@ const partners = [
         <div class={`trust__partner ${i === 0 ? '' : 'is-hidden'}`} data-partner={i} set:html={`${p.svg}<span class="trust__partner-name">${p.name}</span>`} />
       ))}
       <div class="trust__dots">
-        {partners.map((_, i) => (
-          <button class={`trust__dot ${i === 0 ? 'trust__dot--active' : ''}`} data-trust-dot={i}></button>
+        {partners.map((p, i) => (
+          <button
+            class={`trust__dot ${i === 0 ? 'trust__dot--active' : ''}`}
+            data-trust-dot={i}
+            aria-label={`Show ${p.name}`}
+          ></button>
         ))}
       </div>
     </div>

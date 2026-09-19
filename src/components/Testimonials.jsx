@@ -227,20 +227,32 @@ export default function Testimonials() {
         }
         .testimonials__dots {
           display: flex;
-          gap: 8px;
+          align-items: center;
+          gap: 4px;
           margin-top: 32px;
           justify-content: center;
         }
         .testimonials__dot {
-          width: 8px; height: 8px;
-          border-radius: 50%;
-          background: var(--border);
+          width: 24px;
+          height: 24px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: none;
           border: none;
           cursor: pointer;
-          transition: all 0.2s;
           padding: 0;
         }
-        .testimonials__dot--active {
+        .testimonials__dot::before {
+          content: '';
+          display: block;
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          background: var(--border);
+          transition: all 0.2s;
+        }
+        .testimonials__dot--active::before {
           background: var(--burgundy);
           width: 24px;
           border-radius: 4px;
@@ -318,11 +330,12 @@ export default function Testimonials() {
 
           {/* Dots */}
           <div className="testimonials__dots">
-            {testimonials.map((_, i) => (
+            {testimonials.map((t, i) => (
               <button
                 key={i}
                 className={`testimonials__dot ${i === active ? 'testimonials__dot--active' : ''}`}
                 onClick={() => setActive(i)}
+                aria-label={`View testimonial from ${t.name}, ${t.company}`}
               />
             ))}
           </div>
