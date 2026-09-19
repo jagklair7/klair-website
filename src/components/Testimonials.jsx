@@ -238,7 +238,7 @@ export default function Testimonials() {
           border: none;
           cursor: pointer;
           transition: all 0.2s;
-          padding: 0px;
+          padding: 8px;
           background-clip: content-box;
         }
         .testimonials__dot--active {
