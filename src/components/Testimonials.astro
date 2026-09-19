@@ -168,7 +168,7 @@ const testimonials = [
     overflow: hidden;
   }
   .testimonials__item--active .testimonials__item-quote { color: var(--burgundy); }
-  .testimonials__dots { display: flex; gap: 8px; margin-top: 32px; justify-content: center; }
+  .testimonials__dots { display: flex; gap: 12px; margin-top: 32px; justify-content: center; }
   .testimonials__dot {
     width: 8px; height: 8px;
     border-radius: 50%;
@@ -271,7 +271,13 @@ const testimonials = [
 
     <div class="testimonials__dots">
       {testimonials.map((_, i) => (
-        <button class={`testimonials__dot ${i === 0 ? 'testimonials__dot--active' : ''}`} data-dot={i}></button>
+        <button
+          type="button"
+          class={`testimonials__dot ${i === 0 ? 'testimonials__dot--active' : ''}`}
+          data-dot={i}
+          aria-label={`Go to testimonial ${i + 1}`}
+          aria-current={i === 0 ? 'true' : undefined}
+        />
       ))}
     </div>
   </div>
