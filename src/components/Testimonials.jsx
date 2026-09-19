@@ -233,8 +233,8 @@ export default function Testimonials() {
           justify-content: center;
         }
         .testimonials__dot {
-          width: 24px;
-          height: 24px;
+          width: 44px;
+          height: 44px;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -254,7 +254,8 @@ export default function Testimonials() {
         }
         .testimonials__dot--active::before {
           background: var(--burgundy);
-          width: 24px;
+            width: 10px;
+            height: 10px;
           border-radius: 4px;
         }
         @media (max-width: 900px) {
