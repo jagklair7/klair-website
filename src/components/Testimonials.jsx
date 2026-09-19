@@ -227,7 +227,7 @@ export default function Testimonials() {
         }
         .testimonials__dots {
           display: flex;
-          gap: 8px;
+          gap: 12px;
           margin-top: 32px;
           justify-content: center;
         }
@@ -319,12 +319,14 @@ export default function Testimonials() {
 
           {/* Dots */}
          <div className="testimonials__dots">
-            {testimonials.map((t, i) => (
+            {testimonials.map((_, i) => (
               <button
                 key={i}
-                className={`testimonials__dot ${i === active ? 'testimonials__dot--active' : ''}`}
-                onClick={() => setActive(i)}
-                aria-label={`View testimonial from ${t.name}, ${t.company}`}
+                className={`testimonials__dot ${i === activeIndex ? 'testimonials__dot--active' : ''}`}
+                data-dot={i}
+                aria-label={`Go to testimonial ${i + 1}`}
+                aria-current={i === activeIndex ? 'true' : undefined}
+                onClick={() => setActiveIndex(i)}
               />
             ))}
          </div>
