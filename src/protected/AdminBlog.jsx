@@ -8,6 +8,8 @@ import { supabase } from '../lib/supabase'
 import '../index.css'
 
 const SITE_URL = 'https://klair.ca'
+const RESET_REDIRECT_URL = `${SITE_URL}/admin-blog`
+const MIN_PASSWORD_LENGTH = 8
 const IMAGE_BUCKET = 'blog-images'
 const ALLOWED_ROLES = ['admin', 'blog_editor']
 
@@ -193,6 +195,29 @@ function CoverImageField({ value, onChange }) {
   )
 }
 
+// ── Login / Reset styles (shared by login, forgot, and recovery screens) ──
+const LOGIN_STYLES = `
+  .admin-login{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#0f172a 0%,#1e1040 50%,#3b0a1e 100%);padding:24px}
+  .admin-login__card{background:white;border:1.5px solid var(--border);border-radius:20px;padding:48px 40px;width:100%;max-width:400px;text-align:center;box-shadow:0 24px 80px rgba(0,0,0,0.3)}
+  .admin-login__logo{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:28px}
+  .admin-login__logo-mark{width:40px;height:40px;background:var(--burgundy);border-radius:9px;display:flex;align-items:center;justify-content:center;color:white;font-family:'DM Serif Display',serif;font-size:20px}
+  .admin-login__logo-name{font-family:'DM Serif Display',serif;font-size:18px;color:var(--dark)}
+  .admin-login__divider{height:1px;background:var(--border);margin:0 0 28px}
+  .admin-login__title{font-family:'DM Serif Display',serif;font-size:24px;color:var(--dark);margin-bottom:6px}
+  .admin-login__sub{font-size:13px;color:var(--muted);margin-bottom:28px}
+  .admin-login__input{font-family:'DM Sans',sans-serif;width:100%;padding:12px 16px;border:1.5px solid var(--border);border-radius:10px;font-size:15px;outline:none;margin-bottom:14px;transition:border-color 0.15s;background:var(--off-white);box-sizing:border-box}
+  .admin-login__input:focus{border-color:var(--burgundy);background:white;box-shadow:0 0 0 3px rgba(124,28,46,0.08)}
+  .admin-login__error{background:rgba(220,38,38,0.08);border:1px solid rgba(220,38,38,0.2);border-radius:8px;padding:10px 14px;font-size:12px;color:#b91c1c;margin-bottom:14px;text-align:left}
+  .admin-login__success{background:rgba(6,95,70,0.08);border:1px solid rgba(6,95,70,0.2);border-radius:8px;padding:10px 14px;font-size:12px;color:#065f46;margin-bottom:14px;text-align:left}
+  .admin-login__btn{width:100%;padding:13px;background:var(--burgundy);color:white;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:opacity 0.15s}
+  .admin-login__btn:hover:not(:disabled){opacity:0.9}
+  .admin-login__btn:disabled{opacity:0.5;cursor:not-allowed}
+  .admin-login__link-btn{background:none;border:none;padding:0;margin-top:14px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;color:var(--burgundy);cursor:pointer}
+  .admin-login__link-btn:hover{text-decoration:underline}
+  .admin-login__back{display:inline-flex;align-items:center;gap:6px;margin-top:16px;font-size:13px;color:var(--muted);text-decoration:none;transition:color 0.15s}
+  .admin-login__back:hover{color:var(--burgundy)}
+`
+
 // ── Main Component ────────────────────────────────────────────────────────
 export default function AdminBlog() {
   const [session, setSession] = useState(null)
@@ -200,7 +225,14 @@ export default function AdminBlog() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [authError, setAuthError] = useState('')
+  const [authInfo, setAuthInfo] = useState('')
   const [authLoading, setAuthLoading] = useState(false)
+
+  // Password reset
+  const [authMode, setAuthMode] = useState('login') // 'login' | 'forgot'
+  const [recovery, setRecovery] = useState(false)   // true when arriving from a reset email link
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
 
   const [posts, setPosts] = useState([])
   const [loading, setLoading] = useState(true)
@@ -213,6 +245,11 @@ export default function AdminBlog() {
   const [copied, setCopied] = useState(null)
 
   useEffect(() => {
+    // Fallback: implicit-flow recovery links land with #...type=recovery in the URL
+    if (typeof window !== 'undefined' && window.location.hash.includes('type=recovery')) {
+      setRecovery(true)
+    }
+
     supabase.auth.getSession().then(({ data }) => {
       const role = data.session?.user?.app_metadata?.role
       if (data.session && ALLOWED_ROLES.includes(role)) {
@@ -223,7 +260,8 @@ export default function AdminBlog() {
       setCheckingSession(false)
     })
 
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, newSession) => {
+    const { data: listener } = supabase.auth.onAuthStateChange((event, newSession) => {
+      if (event === 'PASSWORD_RECOVERY') setRecovery(true)
       const role = newSession?.user?.app_metadata?.role
       if (newSession && ALLOWED_ROLES.includes(role)) {
         setSession(newSession)
@@ -243,6 +281,7 @@ export default function AdminBlog() {
   async function login(e) {
     e.preventDefault()
     setAuthError('')
+    setAuthInfo('')
     setAuthLoading(true)
     const { data, error } = await supabase.auth.signInWithPassword({ email, password })
 
@@ -264,6 +303,73 @@ export default function AdminBlog() {
     // onAuthStateChange picks up the valid session automatically
   }
 
+  async function sendResetEmail(e) {
+    e.preventDefault()
+    setAuthError('')
+    setAuthInfo('')
+    setAuthLoading(true)
+    const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+      redirectTo: RESET_REDIRECT_URL,
+    })
+    setAuthLoading(false)
+    if (error) {
+      setAuthError(error.message)
+      return
+    }
+    // Generic message on purpose: don't reveal whether the email has an account
+    setAuthInfo('If an account exists for that email, a password reset link is on its way. Check your inbox and spam folder.')
+  }
+
+  async function submitNewPassword(e) {
+    e.preventDefault()
+    setAuthError('')
+    if (newPassword.length < MIN_PASSWORD_LENGTH) {
+      setAuthError(`Password must be at least ${MIN_PASSWORD_LENGTH} characters.`)
+      return
+    }
+    if (newPassword !== confirmPassword) {
+      setAuthError('Passwords do not match.')
+      return
+    }
+    setAuthLoading(true)
+    const { error } = await supabase.auth.updateUser({ password: newPassword })
+    if (error) {
+      setAuthError(error.message)
+      setAuthLoading(false)
+      return
+    }
+
+    // Clean the recovery tokens / code out of the URL
+    window.history.replaceState(null, '', window.location.pathname)
+
+    // Re-check role before letting this session into the admin
+    const { data } = await supabase.auth.getSession()
+    const role = data.session?.user?.app_metadata?.role
+    setNewPassword('')
+    setConfirmPassword('')
+    setAuthLoading(false)
+    setRecovery(false)
+    if (data.session && ALLOWED_ROLES.includes(role)) {
+      setSession(data.session)
+      setView('list')
+    } else {
+      await supabase.auth.signOut()
+      setSession(null)
+      setAuthMode('login')
+      setAuthError('Your account does not have access to the blog admin.')
+    }
+  }
+
+  async function cancelRecovery() {
+    window.history.replaceState(null, '', window.location.pathname)
+    await supabase.auth.signOut()
+    setRecovery(false)
+    setNewPassword('')
+    setConfirmPassword('')
+    setAuthError('')
+    setAuthMode('login')
+  }
+
   async function logout() {
     await supabase.auth.signOut()
     setView('list')
@@ -276,7 +382,7 @@ export default function AdminBlog() {
     setLoading(false)
   }
 
-  useEffect(() => { if (session) fetchPosts() }, [session])
+  useEffect(() => { if (session && !recovery) fetchPosts() }, [session, recovery])
 
   function handleChange(e) {
     const { name, value, type, checked } = e.target
@@ -370,27 +476,10 @@ export default function AdminBlog() {
 
   if (checkingSession) return null
 
-  // ── Login ────────────────────────────────────────────────────────────────
-  if (!session) return (
+  // ── Set new password (arrived from reset email) ──────────────────────────
+  if (recovery) return (
     <>
-      <style dangerouslySetInnerHTML={{__html: `
-        .admin-login{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#0f172a 0%,#1e1040 50%,#3b0a1e 100%);padding:24px}
-        .admin-login__card{background:white;border:1.5px solid var(--border);border-radius:20px;padding:48px 40px;width:100%;max-width:400px;text-align:center;box-shadow:0 24px 80px rgba(0,0,0,0.3)}
-        .admin-login__logo{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:28px}
-        .admin-login__logo-mark{width:40px;height:40px;background:var(--burgundy);border-radius:9px;display:flex;align-items:center;justify-content:center;color:white;font-family:'DM Serif Display',serif;font-size:20px}
-        .admin-login__logo-name{font-family:'DM Serif Display',serif;font-size:18px;color:var(--dark)}
-        .admin-login__divider{height:1px;background:var(--border);margin:0 0 28px}
-        .admin-login__title{font-family:'DM Serif Display',serif;font-size:24px;color:var(--dark);margin-bottom:6px}
-        .admin-login__sub{font-size:13px;color:var(--muted);margin-bottom:28px}
-        .admin-login__input{font-family:'DM Sans',sans-serif;width:100%;padding:12px 16px;border:1.5px solid var(--border);border-radius:10px;font-size:15px;outline:none;margin-bottom:14px;transition:border-color 0.15s;background:var(--off-white);box-sizing:border-box}
-        .admin-login__input:focus{border-color:var(--burgundy);background:white;box-shadow:0 0 0 3px rgba(124,28,46,0.08)}
-        .admin-login__error{background:rgba(220,38,38,0.08);border:1px solid rgba(220,38,38,0.2);border-radius:8px;padding:10px 14px;font-size:12px;color:#b91c1c;margin-bottom:14px;text-align:left}
-        .admin-login__btn{width:100%;padding:13px;background:var(--burgundy);color:white;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:opacity 0.15s}
-        .admin-login__btn:hover:not(:disabled){opacity:0.9}
-        .admin-login__btn:disabled{opacity:0.5;cursor:not-allowed}
-        .admin-login__back{display:inline-flex;align-items:center;gap:6px;margin-top:16px;font-size:13px;color:var(--muted);text-decoration:none;transition:color 0.15s}
-        .admin-login__back:hover{color:var(--burgundy)}
-      `}} />
+      <style dangerouslySetInnerHTML={{__html: LOGIN_STYLES}} />
       <div className="admin-login">
         <div className="admin-login__card">
           <div className="admin-login__logo">
@@ -398,22 +487,86 @@ export default function AdminBlog() {
             <div className="admin-login__logo-name">Klair Computer</div>
           </div>
           <div className="admin-login__divider" />
-          <div className="admin-login__title">Blog Admin</div>
-          <div className="admin-login__sub">Sign in with your admin account</div>
+          <div className="admin-login__title">Set New Password</div>
+          <div className="admin-login__sub">Choose a new password for your admin account</div>
           {authError && <div className="admin-login__error">⚠ {authError}</div>}
-          <form onSubmit={login}>
-            <input className="admin-login__input" type="email"
-              placeholder="Email" value={email}
-              onChange={e => setEmail(e.target.value)}
-              autoComplete="email" required autoFocus />
+          <form onSubmit={submitNewPassword}>
             <input className="admin-login__input" type="password"
-              placeholder="Password" value={password}
-              onChange={e => setPassword(e.target.value)}
-              autoComplete="current-password" required />
+              placeholder="New password" value={newPassword}
+              onChange={e => setNewPassword(e.target.value)}
+              autoComplete="new-password" required autoFocus />
+            <input className="admin-login__input" type="password"
+              placeholder="Confirm new password" value={confirmPassword}
+              onChange={e => setConfirmPassword(e.target.value)}
+              autoComplete="new-password" required />
             <button className="admin-login__btn" type="submit" disabled={authLoading}>
-              {authLoading ? 'Signing in…' : 'Sign In'}
+              {authLoading ? 'Saving…' : 'Update Password'}
             </button>
           </form>
+          <button type="button" className="admin-login__link-btn" onClick={cancelRecovery}>Cancel</button>
+        </div>
+      </div>
+    </>
+  )
+
+  // ── Login / Forgot password ──────────────────────────────────────────────
+  if (!session) return (
+    <>
+      <style dangerouslySetInnerHTML={{__html: LOGIN_STYLES}} />
+      <div className="admin-login">
+        <div className="admin-login__card">
+          <div className="admin-login__logo">
+            <div className="admin-login__logo-mark">K</div>
+            <div className="admin-login__logo-name">Klair Computer</div>
+          </div>
+          <div className="admin-login__divider" />
+
+          {authMode === 'login' ? (
+            <>
+              <div className="admin-login__title">Blog Admin</div>
+              <div className="admin-login__sub">Sign in with your admin account</div>
+              {authError && <div className="admin-login__error">⚠ {authError}</div>}
+              {authInfo && <div className="admin-login__success">{authInfo}</div>}
+              <form onSubmit={login}>
+                <input className="admin-login__input" type="email"
+                  placeholder="Email" value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  autoComplete="email" required autoFocus />
+                <input className="admin-login__input" type="password"
+                  placeholder="Password" value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  autoComplete="current-password" required />
+                <button className="admin-login__btn" type="submit" disabled={authLoading}>
+                  {authLoading ? 'Signing in…' : 'Sign In'}
+                </button>
+              </form>
+              <button type="button" className="admin-login__link-btn"
+                onClick={() => { setAuthMode('forgot'); setAuthError(''); setAuthInfo('') }}>
+                Forgot password?
+              </button>
+            </>
+          ) : (
+            <>
+              <div className="admin-login__title">Reset Password</div>
+              <div className="admin-login__sub">Enter your email and we'll send you a reset link</div>
+              {authError && <div className="admin-login__error">⚠ {authError}</div>}
+              {authInfo && <div className="admin-login__success">{authInfo}</div>}
+              <form onSubmit={sendResetEmail}>
+                <input className="admin-login__input" type="email"
+                  placeholder="Email" value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  autoComplete="email" required autoFocus />
+                <button className="admin-login__btn" type="submit" disabled={authLoading}>
+                  {authLoading ? 'Sending…' : 'Send Reset Link'}
+                </button>
+              </form>
+              <button type="button" className="admin-login__link-btn"
+                onClick={() => { setAuthMode('login'); setAuthError(''); setAuthInfo('') }}>
+                ← Back to sign in
+              </button>
+            </>
+          )}
+
           <div><a href="/" className="admin-login__back">← Back to website</a></div>
         </div>
       </div>
