@@ -35,11 +35,38 @@ const services = [
     muted: '#f5e8eb',
   },
 ];
+
+const digital1nowServices = [
+  {
+    icon: '🎵',
+    title: 'Music Systems',
+    desc: 'Background music and audio system design, installation, and support for businesses and venues.',
+    items: ['System Design', 'Installation', 'Ongoing Support'],
+    color: '#1a237e',
+    muted: '#e8eaf6',
+  },
+  {
+    icon: '💡',
+    title: 'Outdoor Decorative Lighting',
+    desc: 'Custom outdoor lighting for storefronts, buildings, patios, and landscapes, designed and installed to set the right atmosphere.',
+    items: ['Custom Design', 'Professional Install', 'Maintenance'],
+    color: '#7c1c2e',
+    muted: '#f5e8eb',
+  },
+  {
+    icon: '🤖',
+    title: 'AI Marketing',
+    desc: 'AI-assisted content, ad creative, audience targeting, and automated follow-up to reach more customers with less manual effort.',
+    items: ['AI Content', 'Ad Creative', 'Automation'],
+    color: '#1a237e',
+    muted: '#e8eaf6',
+  },
+];
 ---
 
 <MarketingLayout
   title="Managed IT Services in Edmonton"
-  description="Proactive IT support, network security, cloud & backup, and on-site/remote maintenance for Edmonton businesses — all from one team."
+  description="Proactive IT support, network security, cloud & backup, and on-site/remote maintenance for Edmonton businesses — plus music systems, outdoor lighting, and AI marketing through our subsidiary Digital 1 Now."
   path="/services"
 >
   <style>
@@ -90,6 +117,9 @@ const services = [
       display: grid;
       grid-template-columns: repeat(2, 1fr);
       gap: 24px;
+    }
+    .services__grid--three {
+      grid-template-columns: repeat(3, 1fr);
     }
     .services__card {
       border: 1.5px solid var(--border);
@@ -145,6 +175,38 @@ const services = [
       border-radius: 100px;
       letter-spacing: 0.03em;
     }
+    .services__partner {
+      margin-top: 72px;
+    }
+    .services__partner-heading {
+      font-family: 'DM Serif Display', serif;
+      font-size: clamp(24px, 3vw, 34px);
+      color: var(--dark);
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+      margin-bottom: 12px;
+      max-width: 640px;
+    }
+    .services__partner-sub {
+      font-size: 16px;
+      color: var(--muted);
+      line-height: 1.7;
+      max-width: 640px;
+      margin-bottom: 40px;
+    }
+    .services__partner-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 32px;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--burgundy);
+      text-decoration: none;
+    }
+    .services__partner-link:hover {
+      text-decoration: underline;
+    }
     .services__cta {
       margin-top: 56px;
       background: linear-gradient(135deg, #0f172a 0%, #1a237e 60%, #7c1c2e 100%);
@@ -186,6 +248,9 @@ const services = [
       transform: translateY(-1px);
       box-shadow: 0 8px 24px rgba(0,0,0,0.2);
     }
+    @media (max-width: 900px) {
+      .services__grid--three { grid-template-columns: 1fr; }
+    }
     @media (max-width: 768px) {
       .services__grid { grid-template-columns: 1fr; }
       .services__cta { padding: 32px 24px; }
@@ -219,6 +284,41 @@ const services = [
             </div>
           </div>
         ))}
+      </div>
+
+      <div class="services__partner">
+        <div class="services__eyebrow">Delivered by Digital 1 Now</div>
+        <h2 class="services__partner-heading">
+          More ways we can help your business
+        </h2>
+        <p class="services__partner-sub">
+          Through our subsidiary Digital 1 Now, we also offer music systems,
+          outdoor decorative lighting, and AI marketing.
+        </p>
+
+        <div class="services__grid services__grid--three">
+          {digital1nowServices.map(s => (
+            <div class="services__card">
+              <span class="services__card-icon">{s.icon}</span>
+              <h3 class="services__card-title">{s.title}</h3>
+              <div class="services__card-desc">{s.desc}</div>
+              <div class="services__card-items">
+                {s.items.map(item => (
+                  <span class="services__card-tag" style={`background: ${s.muted}; color: ${s.color};`}>
+                    {item}
+                  </span>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <a href="https://digital1now.com/services" class="services__partner-link" target="_blank" rel="noopener">
+          Learn more at Digital 1 Now
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </a>
       </div>
 
       <div class="services__cta">
