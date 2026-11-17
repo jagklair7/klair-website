@@ -26,6 +26,8 @@ import CTABanner from "../components/CTABanner.astro";
     .home-teaser__desc { font-size: 14px; color: var(--muted); line-height: 1.7; margin-bottom: 16px; }
     .home-teaser__link { font-size: 13px; font-weight: 600; color: var(--burgundy); text-decoration: none; }
     .home-teaser__link:hover { text-decoration: underline; }
+    .home-teaser--wide { margin-top: 24px; }
+    .home-teaser__links { display: flex; flex-wrap: wrap; gap: 24px; }
     @media (max-width: 900px) {
       .home-teasers__grid { grid-template-columns: 1fr; }
     }
@@ -51,6 +53,15 @@ import CTABanner from "../components/CTABanner.astro";
           <div class="home-teaser__title">Why Klair</div>
           <p class="home-teaser__desc">We're the Edmonton MSP that thinks like a software company — one team for IT support, security, and custom development.</p>
           <a href="/why-klair" class="home-teaser__link">Why choose us →</a>
+        </div>
+      </div>
+
+      <div class="home-teaser home-teaser--wide">
+        <div class="home-teaser__title">Music Systems, Outdoor Lighting & AI Marketing</div>
+        <p class="home-teaser__desc">Through our subsidiary Digital 1 Now, we also design and install music systems and permanent outdoor decorative lighting, and offer AI marketing. Free quotes.</p>
+        <div class="home-teaser__links">
+          <a href="/services" class="home-teaser__link">See all services →</a>
+          <a href="https://digital1now.com/services" class="home-teaser__link" target="_blank" rel="noopener">Visit Digital 1 Now →</a>
         </div>
       </div>
     </div>
